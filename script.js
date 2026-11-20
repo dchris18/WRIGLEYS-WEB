@@ -1,408 +1,605 @@
 
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
 
-// =======================================
-// GUM SPIT 3D
-// =======================================
+// GUM SPIT — BALCONY CLUB
+// All geometry is generated in code; no models or textures required.
 
 const $ = id => document.getElementById(id);
 
-// THREE.JS SETUP
-
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x91cbe9);
-scene.fog = new THREE.Fog(0x91cbe9, 75, 240);
+scene.background = new THREE.Color('#a8c9c7');
+scene.fog = new THREE.FogExp2('#a8c9c7', 0.006);
 
 const camera = new THREE.PerspectiveCamera(
-  76,
-  innerWidth / innerHeight,
-  0.04,
-  400
+  76, innerWidth / innerHeight, 0.04, 450
 );
-
-camera.rotation.order = "YXZ";
+camera.rotation.order = 'YXZ';
 
 const renderer = new THREE.WebGLRenderer({
-  antialias: true
+  antialias: true,
+  powerPreference: 'high-performance'
 });
-
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.45;
+$('game').appendChild(renderer.domElement);
 
-$("game").appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xeaf5ec, 0x73847a, 2.5));
 
-// LIGHTING
+const sunlight = new THREE.DirectionalLight(0xffdfb3, 3.2);
+sunlight.position.set(-28, 56, -24);
+sunlight.castShadow = true;
+sunlight.shadow.mapSize.set(2048, 2048);
+sunlight.shadow.camera.left = -65;
+sunlight.shadow.camera.right = 65;
+sunlight.shadow.camera.top = 65;
+sunlight.shadow.camera.bottom = -65;
+sunlight.shadow.normalBias = 0.035;
+scene.add(sunlight);
 
-scene.add(
-  new THREE.HemisphereLight(
-    0xffffff,
-    0x6c8475,
-    2.2
-  )
-);
+const mat = (color, roughness = 0.95) =>
+  new THREE.MeshStandardMaterial({
+    color,
+    roughness,
+    flatShading: true
+  });
 
-const sun = new THREE.DirectionalLight(0xfff1d6, 2.3);
-sun.position.set(-28, 60, -32);
-sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
-sun.shadow.camera.left = -65;
-sun.shadow.camera.right = 65;
-sun.shadow.camera.top = 65;
-sun.shadow.camera.bottom = -65;
-scene.add(sun);
-
-// MATERIALS
-
-const material = (color, roughness = 0.85) =>
-  new THREE.MeshStandardMaterial({ color, roughness });
-
-const m = {
-  brick: material(0xb46a5b),
-  cement: material(0xbebbb3),
-  sidewalk: material(0xd2cfc5),
-  road: material(0x4c5964),
-  rail: material(0x283b49, 0.4),
-  glass: material(0x8ac6dd, 0.25),
-  white: material(0xf5f3e8),
-  yellow: material(0xffdb60),
-  green: material(0x2e7a58),
-  dark: material(0x163c30),
-  metal: material(0x86969b, 0.3),
-  skin: material(0xe5ad88),
-  gum: material(0xf1a5b8),
-  grass: material(0x87a77c),
-  leaf: material(0x548e59),
-  trunk: material(0x78553f)
+const M = {
+  cream: mat('#f2e5cb'),
+  ivory: mat('#fff2d7'),
+  cement: mat('#b8b4a5'),
+  edge: mat('#e5d6ba'),
+  brick: mat('#b9705d'),
+  brick2: mat('#d29a78'),
+  brick3: mat('#a87d77'),
+  rail: mat('#364a4c', 0.65),
+  metal: mat('#a3aba0', 0.5),
+  glass: mat('#6d9ea4', 0.3),
+  glass2: mat('#b5d4c9', 0.3),
+  asphalt: mat('#66777a'),
+  sidewalk: mat('#c8c5b4'),
+  yellow: mat('#f1d17b'),
+  grass: mat('#789c77'),
+  leaves: mat('#739b7b'),
+  leaves2: mat('#93ad81'),
+  trunk: mat('#8b6b56'),
+  green: mat('#578e78'),
+  greenDark: mat('#355d50'),
+  pink: mat('#e8a6a7'),
+  skin: mat('#dba781'),
+  sleeve: mat('#6f8d99'),
+  gumPack: mat('#e5e9d8'),
+  gumStripe: mat('#4d9a70'),
+  gumLetter: mat('#2f624b'),
+  carRed: mat('#c7796c'),
+  carBlue: mat('#668b9a'),
+  tire: mat('#3c4546'),
+  white: mat('#f7f0df'),
+  black: mat('#2c3d3d')
 };
 
-// GEOMETRY HELPERS
-
-function box(parent, w, h, d, mat, x, y, z) {
-  const obj = new THREE.Mesh(
+function cube(parent, w, h, d, material, x = 0, y = 0, z = 0) {
+  const o = new THREE.Mesh(
     new THREE.BoxGeometry(w, h, d),
-    mat
+    material
   );
-
-  obj.position.set(x, y, z);
-  obj.castShadow = true;
-  obj.receiveShadow = true;
-  parent.add(obj);
-
-  return obj;
+  o.position.set(x, y, z);
+  o.castShadow = true;
+  o.receiveShadow = true;
+  parent.add(o);
+  return o;
 }
 
-function cylinder(parent, top, bottom, h, mat, x, y, z) {
-  const obj = new THREE.Mesh(
-    new THREE.CylinderGeometry(top, bottom, h, 24),
-    mat
+function cyl(parent, rTop, rBottom, h, material, x = 0, y = 0, z = 0, segments = 10) {
+  const o = new THREE.Mesh(
+    new THREE.CylinderGeometry(rTop, rBottom, h, segments),
+    material
   );
-
-  obj.position.set(x, y, z);
-  obj.castShadow = true;
-  obj.receiveShadow = true;
-  parent.add(obj);
-
-  return obj;
+  o.position.set(x, y, z);
+  o.castShadow = true;
+  o.receiveShadow = true;
+  parent.add(o);
+  return o;
 }
 
-// GROUPS
+function ball(parent, r, material, x = 0, y = 0, z = 0, detail = 0) {
+  const o = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(r, detail),
+    material
+  );
+  o.position.set(x, y, z);
+  o.castShadow = true;
+  parent.add(o);
+  return o;
+}
+
+function labelTexture(text, bg, fg) {
+  const c = document.createElement('canvas');
+  c.width = 512;
+  c.height = 256;
+
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 512, 256);
+  ctx.fillStyle = fg;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = '900 92px Arial';
+  ctx.fillText(text, 256, 132);
+
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
 
 const city = new THREE.Group();
 const balcony = new THREE.Group();
 const trash = new THREE.Group();
-const hands = new THREE.Group();
 
 scene.add(city, balcony, trash, camera);
+
+const hands = new THREE.Group();
 camera.add(hands);
 
-// CITY
+// ======================================
+// CITY ENVIRONMENT
+// ======================================
 
-function createCity() {
-  box(city, 400, 1, 400, m.grass, 0, -0.6, -70);
-  box(city, 160, 0.14, 19, m.sidewalk, 0, 0, -14);
-  box(city, 160, 0.1, 24, m.road, 0, -0.04, -36);
-  box(city, 160, 0.14, 12, m.sidewalk, 0, 0, -55);
+function random(seed) {
+  let n = Math.sin(seed * 127.1 + 78.233) * 43758.5453;
+  return n - Math.floor(n);
+}
 
-  for (let x = -80; x <= 80; x += 4) {
-    box(
-      city, 0.035, 0.015, 19,
-      material(0xaaa69d), x, 0.09, -14
-    );
-  }
+function makeBuilding(x, z, w, d, h, material, front = true) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  city.add(g);
 
-  for (let x = -75; x < 75; x += 12) {
-    box(city, 5, 0.02, 0.2, m.yellow, x, 0.04, -36);
-  }
+  cube(g, w, h, d, material, 0, h / 2, 0);
+  cube(g, w + 0.45, 0.45, d + 0.45, M.cream, 0, h + 0.1, 0);
+  cube(g, w + 0.25, 0.4, d + 0.25, M.brick3, 0, h - 0.45, 0);
 
-  for (let i = -5; i <= 5; i++) {
-    const h = 20 + Math.abs(i * 7) % 18;
-    const x = i * 19;
-    const z = -78;
-    const w = 17;
+  for (let y = 3; y < h - 2; y += 3.9) {
+    for (let xx = -w / 2 + 1.8; xx < w / 2 - 0.5; xx += 3.2) {
+      for (const side of [-1, 1]) {
+        cube(
+          g, 1.65, 2.1, 0.08,
+          ((y + xx) % 3 > 1 ? M.glass2 : M.glass),
+          xx, y, side * (d / 2 + 0.05)
+        );
 
-    const group = new THREE.Group();
-    group.position.set(x, 0, z);
+        cube(
+          g, 1.95, 0.16, 0.36,
+          M.cream,
+          xx, y - 1.15, side * (d / 2 + 0.2)
+        );
 
-    box(
-      group, w, h, 15,
-      material(i % 2 ? 0x8b9eaa : 0xb7a89c),
-      0, h / 2, 0
-    );
-
-    for (let y = 3; y < h - 2; y += 4) {
-      for (let wx = -w / 2 + 2; wx < w / 2 - 1; wx += 3.5) {
-        box(group, 1.7, 2.2, 0.08, m.glass, wx, y, 7.56);
-        box(group, 1.9, 0.12, 0.16, m.white, wx, y - 1.15, 7.65);
+        cube(
+          g, 0.12, 2.1, 0.11,
+          M.cream,
+          xx, y, side * (d / 2 + 0.12)
+        );
       }
     }
-
-    city.add(group);
   }
 
-  for (let i = -6; i <= 6; i++) {
-    if (Math.abs(i) < 2) continue;
+  for (let i = 0; i < 2; i++) {
+    const ax = -w / 4 + i * w / 2;
+    cube(g, 1.6, 0.8, 1.5, M.metal, ax, h + 0.5, 0);
+    cube(g, 1.35, 0.08, 1.3, M.rail, ax, h + 0.94, 0);
+  }
 
-    const x = i * 11;
-    const z = -7;
+  return g;
+}
 
-    cylinder(city, 0.25, 0.35, 3, m.trunk, x, 1.5, z);
+function makeTree(x, z, size = 1) {
+  cyl(city, 0.2 * size, 0.32 * size, 2.5 * size,
+    M.trunk, x, 1.25 * size, z, 7);
 
-    const crown = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(2.1, 1),
-      m.leaf
-    );
+  ball(city, 1.55 * size, M.leaves,
+    x, 3.2 * size, z, 1);
 
-    crown.position.set(x, 4.3, z);
-    crown.castShadow = true;
-    city.add(crown);
+  ball(city, 1.2 * size, M.leaves2,
+    x - 0.65 * size, 3.45 * size, z, 1);
+
+  ball(city, 1.15 * size, M.leaves,
+    x + 0.65 * size, 3.5 * size, z + 0.2 * size, 1);
+}
+
+function makeCar(x, z, color) {
+  const g = new THREE.Group();
+  g.position.set(x, 0.1, z);
+  city.add(g);
+
+  cube(g, 3.3, 0.75, 1.6, color, 0, 0.67, 0);
+  cube(g, 1.7, 0.75, 1.45, color, -0.1, 1.34, 0);
+  cube(g, 1.4, 0.42, 0.035, M.glass2, -0.12, 1.37, -0.74);
+
+  for (const dx of [-1.05, 1.05]) {
+    for (const dz of [-0.85, 0.85]) {
+      const wheel = cyl(
+        g, 0.36, 0.36, 0.17,
+        M.tire, dx, 0.38, dz, 12
+      );
+      wheel.rotation.x = Math.PI / 2;
+
+      cyl(
+        g, 0.14, 0.14, 0.18,
+        M.metal, dx, 0.38, dz, 12
+      ).rotation.x = Math.PI / 2;
+    }
   }
 }
 
-// GAME STATE
+function makeCity() {
+  cube(city, 500, 0.6, 500, M.grass, 0, -0.35, -60);
+  cube(city, 180, 0.14, 18, M.sidewalk, 0, 0, -14);
+  cube(city, 180, 0.11, 25, M.asphalt, 0, -0.01, -36);
+  cube(city, 180, 0.14, 14, M.sidewalk, 0, 0, -56);
+
+  cube(city, 180, 0.18, 0.35, M.edge, 0, 0.08, -23.2);
+  cube(city, 180, 0.18, 0.35, M.edge, 0, 0.08, -48.6);
+
+  for (let x = -85; x < 85; x += 5) {
+    cube(city, 0.04, 0.02, 18, M.cement, x, 0.09, -14);
+    cube(city, 0.04, 0.02, 14, M.cement, x, 0.09, -56);
+  }
+
+  for (let x = -82; x < 85; x += 12) {
+    cube(city, 5.2, 0.025, 0.17, M.yellow, x, 0.07, -36);
+  }
+
+  for (let i = -5; i <= 5; i++) {
+    const x = i * 19;
+    makeBuilding(
+      x, -83, 16, 15,
+      20 + Math.floor(random(i + 11) * 17),
+      [M.brick, M.brick2, M.brick3][Math.abs(i) % 3]
+    );
+  }
+
+  for (let i = -5; i <= 5; i++) {
+    if (i === 0) continue;
+
+    const x = i * 21;
+    makeBuilding(
+      x, 23, 18, 14,
+      18 + Math.floor(random(i + 40) * 16),
+      [M.brick2, M.brick3, M.brick][Math.abs(i) % 3]
+    );
+  }
+
+  for (let i = -7; i <= 7; i++) {
+    if (Math.abs(i) < 2) continue;
+    makeTree(
+      i * 10.5, -7.2,
+      0.75 + random(i + 100) * 0.3
+    );
+  }
+
+  makeCar(-19, -29, M.carRed);
+  makeCar(15, -42, M.carBlue);
+  makeCar(39, -29, M.green);
+
+  for (const x of [-31, -16, 18, 33]) {
+    cube(city, 2.3, 0.55, 1.3, M.brick3, x, 0.3, -20);
+    ball(city, 0.9, M.leaves2, x, 1.2, -20, 1);
+  }
+
+  for (const x of [-28, 27]) {
+    cyl(city, 0.08, 0.1, 6.4, M.rail, x, 3.2, -23, 8);
+    cube(city, 1.3, 0.18, 0.45, M.rail, x + 0.55, 6.4, -23);
+    cube(city, 0.9, 0.05, 0.32, M.yellow, x + 0.6, 6.25, -23);
+  }
+}
+
+// ======================================
+// GAME STATE AND BALCONY
+// ======================================
 
 let floor = 1;
 let score = 0;
 let wind = 0;
 let power = 60;
 let height = 12;
-let state = "idle";
-let sequenceTime = 0;
 
+let state = 'idle';
+let introTime = 0;
 let yaw = 0;
-let pitch = -0.12;
+let pitch = -0.2;
 let locked = false;
 
 let projectile = null;
 let flightTime = 0;
+let misses = 0;
 
 const velocity = new THREE.Vector3();
 const previous = new THREE.Vector3();
-const trashPosition = new THREE.Vector3();
+const target = new THREE.Vector3();
 
-// CAMERA POSITION
-// The front railing is at z = -4.02.
-// EDGE_Z is beyond the railing, giving a
-// clear downward view of the sidewalk.
+const START_Z = 1.35;
+const EDGE_Z = -4.66;
+const RAIL_Z = -4.02;
 
-const EYE_ABOVE_FLOOR = 1.65;
-const START_Z = 1.45;
-const EDGE_Z = -4.65;
+let pack, flap, stick, rightHand, leftHand, chewGum;
 
-// BALCONY
-
-function createBalcony() {
+function makeBalcony() {
   balcony.clear();
 
-  const h = height;
+  const ground = height - 1.65;
 
-  box(balcony, 30, 120, 10, m.brick, 0, h - 10, 9);
+  cube(balcony, 32, 100, 11, M.brick, 0, ground - 14, 9.2);
+  cube(balcony, 8.6, 0.32, 6.3, M.cement, 0, ground - 0.2, -1.05);
+  cube(balcony, 8.8, 0.13, 0.3, M.edge, 0, ground - 0.08, -4.12);
 
-  box(
-    balcony, 8, 0.3, 6, m.cement,
-    0, h - EYE_ABOVE_FLOOR - 0.16, -1
-  );
+  cube(balcony, 8.6, 0.15, 0.14, M.rail,
+    0, ground + 1.1, RAIL_Z);
 
-  box(balcony, 8, 0.12, 0.13, m.rail, 0, h - 0.73, -4.02);
-  box(balcony, 8, 0.08, 0.1, m.rail, 0, h - 1.5, -4.02);
+  cube(balcony, 8.6, 0.09, 0.11, M.rail,
+    0, ground + 0.45, RAIL_Z);
 
-  for (let x = -3.9; x <= 3.9; x += 0.5) {
-    box(
-      balcony, 0.065, 0.82, 0.065,
-      m.rail, x, h - 1.13, -4.02
+  for (let x = -4.1; x <= 4.2; x += 0.65) {
+    cube(
+      balcony, 0.085, 1.15, 0.085,
+      M.rail, x, ground + 0.58, RAIL_Z
     );
   }
 
   for (const side of [-1, 1]) {
-    const x = side * 3.95;
+    cube(
+      balcony, 0.14, 0.15, 6.3,
+      M.rail, side * 4.25, ground + 1.1, -1.05
+    );
 
-    box(balcony, 0.12, 0.12, 6, m.rail, x, h - 0.73, -1);
-
-    for (let z = -3.8; z < 2; z += 0.6) {
-      box(
-        balcony, 0.07, 0.82, 0.07,
-        m.rail, x, h - 1.13, z
+    for (let z = -3.9; z < 2; z += 0.75) {
+      cube(
+        balcony, 0.085, 1.15, 0.085,
+        M.rail, side * 4.25, ground + 0.58, z
       );
     }
   }
 
-  box(balcony, 2.7, 4.4, 0.25, m.white, 0, h + 0.2, 3.8);
-  box(balcony, 2.2, 3.8, 0.08, m.glass, 0, h + 0.15, 3.61);
-  box(balcony, 0.09, 3.8, 0.12, m.white, 0, h + 0.15, 3.54);
+  cube(balcony, 3.5, 4.5, 0.3, M.cream,
+    0, ground + 2.15, 3.65);
+
+  cube(balcony, 2.7, 3.9, 0.08, M.glass,
+    0, ground + 2.1, 3.47);
+
+  cube(balcony, 0.12, 3.9, 0.15, M.cream,
+    0, ground + 2.1, 3.38);
+
+  cube(balcony, 0.17, 0.17, 0.16, M.metal,
+    1.0, ground + 1.9, 3.3);
+
+  cube(balcony, 1.0, 0.12, 0.7, M.cream,
+    -3.15, ground + 0.65, 0.3);
+
+  for (const dx of [-0.37, 0.37]) {
+    for (const dz of [-0.24, 0.24]) {
+      cube(
+        balcony, 0.1, 0.62, 0.1,
+        M.trunk,
+        -3.15 + dx,
+        ground + 0.31,
+        0.3 + dz
+      );
+    }
+  }
+
+  cyl(balcony, 0.44, 0.34, 0.55, M.brick3,
+    3.1, ground + 0.28, 0.6, 9);
+
+  ball(balcony, 0.55, M.leaves2,
+    3.1, ground + 0.86, 0.6, 1);
 }
 
+// ======================================
 // TRASH CAN
+// ======================================
 
-function createTrash() {
+function makeTrash() {
   trash.clear();
-  trash.position.copy(trashPosition);
+  trash.position.copy(target);
 
-  cylinder(trash, 0.64, 0.52, 1.28, m.green, 0, 0.64, 0);
-  cylinder(trash, 0.56, 0.56, 0.025, m.dark, 0, 1.29, 0);
+  cyl(trash, 0.7, 0.55, 1.35, M.green, 0, 0.675, 0, 12);
+  cyl(trash, 0.59, 0.59, 0.035, M.greenDark, 0, 1.37, 0, 16);
 
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(0.62, 0.07, 8, 36),
-    m.metal
+    new THREE.TorusGeometry(0.66, 0.07, 8, 28),
+    M.metal
   );
 
   rim.rotation.x = Math.PI / 2;
-  rim.position.y = 1.3;
+  rim.position.y = 1.4;
   trash.add(rim);
 
   for (let i = 0; i < 12; i++) {
     const a = i * Math.PI / 6;
 
-    box(
-      trash, 0.035, 0.9, 0.035, m.dark,
-      Math.cos(a) * 0.58,
-      0.62,
-      Math.sin(a) * 0.58
+    cube(
+      trash, 0.045, 0.95, 0.045,
+      M.greenDark,
+      Math.cos(a) * 0.6,
+      0.67,
+      Math.sin(a) * 0.6
     );
   }
 
   const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(0.86, 0.035, 8, 40),
+    new THREE.TorusGeometry(0.86, 0.035, 7, 32),
     new THREE.MeshBasicMaterial({
-      color: 0xffdc57,
+      color: 0xffd780,
       transparent: true,
       opacity: 0.8
     })
   );
 
   ring.rotation.x = Math.PI / 2;
-  ring.position.y = 1.62;
-  ring.name = "targetRing";
-
+  ring.position.y = 1.72;
+  ring.name = 'targetRing';
   trash.add(ring);
-}
 
-// FIRST PERSON GUM AND HANDS
-
-let pack;
-let flap;
-let stick;
-let rightHand;
-
-function createHands() {
-  hands.clear();
-
-  const capsule = new THREE.CapsuleGeometry(
-    0.12, 0.36, 5, 10
+  const sticker = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.62, 0.28),
+    new THREE.MeshBasicMaterial({
+      map: labelTexture('BIN', '#e8e2c8', '#365d50'),
+      transparent: false,
+      side: THREE.DoubleSide
+    })
   );
 
-  const left = new THREE.Mesh(capsule, m.skin);
-  left.position.set(-0.48, -0.55, -0.75);
-  left.rotation.z = -0.45;
-  hands.add(left);
+  sticker.position.set(0, 0.85, 0.61);
+  trash.add(sticker);
+}
 
-  rightHand = new THREE.Mesh(capsule, m.skin);
-  rightHand.position.set(0.48, -0.55, -0.75);
-  rightHand.rotation.z = 0.45;
-  hands.add(rightHand);
+// ======================================
+// FIRST-PERSON HANDS AND GUM
+// ======================================
+
+function makeHands() {
+  hands.clear();
+
+  const palmGeo = new THREE.SphereGeometry(0.16, 10, 8);
+
+  function hand(side) {
+    const group = new THREE.Group();
+    group.position.set(side * 0.42, -0.48, -0.64);
+    hands.add(group);
+
+    const arm = cyl(
+      group, 0.12, 0.15, 0.42,
+      M.sleeve, side * 0.03, -0.27, 0, 9
+    );
+    arm.rotation.z = side * 0.25;
+
+    const palm = new THREE.Mesh(palmGeo, M.skin);
+    palm.scale.set(0.9, 1.2, 0.55);
+    group.add(palm);
+
+    for (let i = 0; i < 4; i++) {
+      const finger = cyl(
+        group, 0.035, 0.043,
+        0.18 - i * 0.012,
+        M.skin,
+        side * 0.04 + (i - 1.5) * 0.075,
+        0.14,
+        -0.04,
+        7
+      );
+      finger.rotation.z = (i - 1.5) * 0.1;
+    }
+
+    return group;
+  }
+
+  leftHand = hand(-1);
+  rightHand = hand(1);
 
   pack = new THREE.Group();
+  pack.position.set(-0.03, -0.3, -0.76);
+  hands.add(pack);
 
-  box(pack, 0.68, 0.3, 0.14, m.white, 0, 0, 0);
-  box(pack, 0.68, 0.045, 0.15, m.green, 0, 0.11, 0);
-  box(pack, 0.68, 0.045, 0.15, m.green, 0, -0.11, 0);
+  cube(pack, 0.74, 0.36, 0.16, M.gumPack);
+  cube(pack, 0.75, 0.085, 0.17, M.gumStripe, 0, 0.13, 0);
+  cube(pack, 0.75, 0.075, 0.17, M.gumStripe, 0, -0.14, 0);
+
+  const face = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.58, 0.18),
+    new THREE.MeshBasicMaterial({
+      map: labelTexture('GUM', '#e5e9d8', '#2f624b'),
+      transparent: false
+    })
+  );
+
+  face.position.set(0, 0, 0.088);
+  pack.add(face);
 
   flap = new THREE.Group();
-  box(flap, 0.68, 0.17, 0.025, m.white, 0, 0.085, 0);
-  flap.position.set(0, 0.15, 0.01);
+  flap.position.set(0, 0.18, -0.04);
   pack.add(flap);
+  cube(flap, 0.74, 0.19, 0.035, M.gumPack, 0, 0.09, 0);
 
   for (let i = 0; i < 5; i++) {
-    box(
-      pack, 0.1, 0.23, 0.025, m.white,
-      -0.23 + i * 0.115, 0.01, -0.09
+    cube(
+      pack, 0.105, 0.25, 0.04,
+      M.ivory, -0.25 + i * 0.125, 0.015, -0.12
     );
   }
 
   stick = new THREE.Group();
-  box(stick, 0.1, 0.24, 0.035, m.white, 0, 0, 0);
-  stick.position.set(0.12, 0.02, -0.12);
   pack.add(stick);
+  stick.position.set(0.1, 0.02, -0.18);
 
-  pack.position.set(0, -0.35, -0.7);
-  hands.add(pack);
+  cube(stick, 0.115, 0.28, 0.05, M.ivory);
+  cube(stick, 0.115, 0.055, 0.052, M.metal, 0, 0.1, 0);
+
+  chewGum = ball(hands, 0.08, M.pink, 0, -0.1, -0.48, 1);
+  chewGum.visible = false;
 }
 
-// HUD
+// ======================================
+// HUD AND CAMERA
+// ======================================
 
-function hud() {
-  $("floor").textContent = floor;
-  $("score").textContent = score;
-  $("wind").textContent =
-    (wind >= 0 ? "+" : "") + wind.toFixed(1);
-
-  $("powerText").textContent = power + "%";
-  $("powerFill").style.width = power + "%";
+function updateHud() {
+  $('floor').textContent = floor;
+  $('score').textContent = score;
+  $('wind').textContent = (wind >= 0 ? '+' : '') + wind.toFixed(1);
+  $('powerText').textContent = power + '%';
+  $('powerFill').style.width = power + '%';
 }
 
-function msg(text) {
-  $("message").textContent = text;
+function message(text) {
+  $('message').textContent = text;
 }
 
-// CAMERA
-
-function cameraAngles() {
+function angles() {
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
 }
 
-function lookAtTrash() {
-  const direction = trashPosition.clone()
-    .add(new THREE.Vector3(0, 1.3, 0))
+function targetAngles() {
+  const d = target.clone()
+    .add(new THREE.Vector3(0, 1.35, 0))
     .sub(camera.position)
     .normalize();
 
-  yaw = Math.atan2(-direction.x, -direction.z);
-  pitch = Math.asin(direction.y);
-
-  cameraAngles();
+  return {
+    yaw: Math.atan2(-d.x, -d.z),
+    pitch: Math.asin(d.y)
+  };
 }
 
-// LEVEL RESET
+function smooth(x) {
+  x = THREE.MathUtils.clamp(x, 0, 1);
+  return x * x * (3 - 2 * x);
+}
+
+// ======================================
+// LEVEL SETUP
+// ======================================
 
 function resetLevel() {
   height = 12 + (floor - 1) * 6;
   power = 60;
 
   wind = (Math.random() - 0.5) *
-    Math.min(floor * 0.5, 3);
+    Math.min(0.5 * floor, 3);
 
-  trashPosition.set(
+  target.set(
     (Math.random() - 0.5) * 3,
     0,
-    -11.5 - Math.random() * 2.5
+    -12.0 - Math.random() * 1.8
   );
 
   camera.position.set(0, height, START_Z);
-
   yaw = 0;
-  pitch = -0.12;
-  cameraAngles();
+  pitch = -0.16;
+  angles();
 
   if (projectile) {
     scene.remove(projectile);
@@ -410,295 +607,241 @@ function resetLevel() {
     projectile = null;
   }
 
-  createBalcony();
-  createTrash();
-  createHands();
+  makeBalcony();
+  makeTrash();
+  makeHands();
 
-  hands.visible = true;
-  pack.visible = true;
-  flap.rotation.x = 0;
-  stick.position.set(0.12, 0.02, -0.12);
+  $('crosshair').classList.add('hidden');
+  $('powerHud').classList.add('hidden');
 
-  $("powerHud").style.opacity = "0";
-  $("crosshair").style.opacity = "0";
+  state = 'intro';
+  introTime = 0;
 
-  state = "intro";
-  sequenceTime = 0;
-
-  msg("OPENING THE GUM...");
-  hud();
+  message('UNWRAPPING THE GUM…');
+  updateHud();
 }
 
-// START GAME
+$('startButton').addEventListener('click', () => {
+  if (state !== 'idle') return;
 
-function startGame() {
-  if (state !== "idle") return;
+  $('startScreen').classList.add('hidden');
+  $('hud').classList.remove('hidden');
 
-  $("startScreen").classList.add("hidden");
   resetLevel();
-}
+});
 
-$("startButton").addEventListener("click", startGame);
-
-// ANIMATION HELPER
-
-function smooth(t) {
-  t = THREE.MathUtils.clamp(t, 0, 1);
-  return t * t * (3 - 2 * t);
-}
-
-// AUTOMATIC INTRO
-// No clicking, no manual walking.
+// ======================================
+// AUTOMATIC 4-SECOND INTRO
+// ======================================
 
 function updateIntro(dt) {
-  if (state !== "intro") return;
+  if (state !== 'intro') return;
 
-  sequenceTime += dt;
-  const t = sequenceTime;
+  introTime += dt;
+  const t = introTime;
 
-  // OPEN PACK
+  if (t < 0.8) {
+    message('UNWRAPPING THE GUM…');
 
-  if (t < 1.4) {
-    msg("OPENING THE GUM...");
+    flap.rotation.x = -2.45 * smooth(t / 0.7);
+    pack.rotation.z = Math.sin(t * 8) * 0.06;
+    leftHand.rotation.z = -0.08 * Math.sin(t * 8);
 
-    flap.rotation.x =
-      -2.3 * smooth((t - 0.25) / 1.05);
+  } else if (t < 1.4) {
+    message('ONE FRESH STICK…');
 
-    pack.rotation.z = Math.sin(t * 2) * 0.05;
-  }
-
-  // REMOVE STICK
-
-  else if (t < 2.7) {
-    msg("TAKING OUT A STICK...");
-
-    const p = smooth((t - 1.4) / 1.3);
+    const p = smooth((t - 0.8) / 0.6);
 
     stick.position.set(
-      0.12 + p * 0.2,
-      0.02 + p * 0.36,
-      -0.12
+      0.1 + p * 0.18,
+      0.02 + p * 0.37,
+      -0.18 + p * 0.16
     );
 
-    rightHand.position.y = -0.55 + p * 0.23;
-  }
+    rightHand.position.y = -0.48 + p * 0.24;
+    pack.rotation.z = -0.07;
 
-  // AUTOMATIC CHEW
+  } else if (t < 2.0) {
+    message('CHOMP CHOMP…');
 
-  else if (t < 4.3) {
-    msg("CHEWING...");
+    const p = smooth((t - 1.4) / 0.6);
 
-    const p = (t - 2.7) / 1.6;
+    pack.position.y = -0.3 - p * 0.6;
 
-    rightHand.position.y =
-      -0.55 + Math.sin(p * Math.PI * 5) * 0.09;
+    rightHand.position.set(
+      0.42 - p * 0.35,
+      -0.24 + p * 0.13,
+      -0.64 - p * 0.12
+    );
 
-    pack.position.y = -0.35 - p * 0.3;
-    pack.visible = p < 0.65;
-  }
+    chewGum.visible = true;
+    chewGum.scale.setScalar(1 + Math.sin(t * 26) * 0.12);
+    chewGum.position.y = -0.13 + p * 0.2;
 
-  // AUTOMATIC WALK TO EDGE
-
-  else if (t < 7.8) {
-    msg("WALKING TO THE EDGE...");
+  } else if (t < 3.5) {
+    message('TO THE BALCONY…');
 
     hands.visible = false;
 
-    const p = smooth((t - 4.3) / 3.5);
+    const p = smooth((t - 2) / 1.5);
 
     camera.position.z = THREE.MathUtils.lerp(
-      START_Z,
-      EDGE_Z,
-      p
+      START_Z, EDGE_Z, p
     );
 
     camera.position.y =
-      height +
-      Math.sin(t * 12) * 0.025 * (1 - p);
+      height + Math.sin((t - 2) * 17) * 0.038 * (1 - p);
 
-    pitch = THREE.MathUtils.lerp(-0.12, -0.4, p);
-    cameraAngles();
-  }
+    pitch = THREE.MathUtils.lerp(-0.16, -0.48, p);
+    angles();
 
-  // LOOK DOWN AT TRASH CAN
-
-  else if (t < 8.7) {
-    msg("LOOKING FOR THE TRASH CAN...");
+  } else if (t < 4.0) {
+    message('THERE IT IS…');
 
     camera.position.set(0, height, EDGE_Z);
 
-    const direction = trashPosition.clone()
-      .add(new THREE.Vector3(0, 1.3, 0))
-      .sub(camera.position)
-      .normalize();
+    const aim = targetAngles();
+    const p = smooth((t - 3.5) / 0.5);
 
-    const targetPitch = Math.asin(direction.y);
-    const targetYaw = Math.atan2(
-      -direction.x,
-      -direction.z
-    );
+    yaw = THREE.MathUtils.lerp(0, aim.yaw, p);
+    pitch = THREE.MathUtils.lerp(-0.48, aim.pitch, p);
+    angles();
 
-    const p = smooth((t - 7.8) / 0.9);
-
-    pitch = THREE.MathUtils.lerp(
-      -0.4,
-      targetPitch,
-      p
-    );
-
-    yaw = THREE.MathUtils.lerp(
-      0,
-      targetYaw,
-      p
-    );
-
-    cameraAngles();
-  }
-
-  // PLAYER TAKES CONTROL
-
-  else {
-    state = "aiming";
-
+  } else {
     camera.position.set(0, height, EDGE_Z);
-    lookAtTrash();
 
-    $("powerHud").style.opacity = "1";
-    $("crosshair").style.opacity = "1";
+    const aim = targetAngles();
+    yaw = aim.yaw;
+    pitch = aim.pitch;
+    angles();
 
-    msg("AIM AT THE TRASH CAN · CLICK ONCE TO ENABLE MOUSE");
+    state = 'aiming';
+
+    $('crosshair').classList.remove('hidden');
+    $('powerHud').classList.remove('hidden');
+
+    message('CLICK TO AIM · THEN CLICK TO SPIT');
   }
 }
 
-// MOUSE AIMING
+// ======================================
+// AIMING CONTROLS
+// ======================================
 
 function lockMouse() {
-  if (document.pointerLockElement === renderer.domElement) {
-    return;
-  }
-
-  const promise = renderer.domElement.requestPointerLock?.();
-
-  if (promise?.catch) {
-    promise.catch(() => {});
-  }
+  if (document.pointerLockElement === renderer.domElement) return;
+  renderer.domElement.requestPointerLock?.()?.catch?.(() => {});
 }
 
-document.addEventListener("pointerlockchange", () => {
+document.addEventListener('pointerlockchange', () => {
   locked = document.pointerLockElement === renderer.domElement;
+
+  if (state === 'aiming' && !locked) {
+    message('CLICK TO AIM · THEN CLICK TO SPIT');
+  }
 });
 
-document.addEventListener("mousemove", event => {
-  if (!locked || state !== "aiming") return;
+document.addEventListener('mousemove', e => {
+  if (!locked || state !== 'aiming') return;
 
   yaw = THREE.MathUtils.clamp(
-    yaw - event.movementX * 0.0022,
-    -1.3,
-    1.3
+    yaw - e.movementX * 0.0022, -1.35, 1.35
   );
 
   pitch = THREE.MathUtils.clamp(
-    pitch - event.movementY * 0.0022,
-    -1.52,
-    0.4
+    pitch - e.movementY * 0.0022, -1.54, 0.35
   );
 
-  cameraAngles();
+  angles();
 });
 
-// SPIT POWER
-
-document.addEventListener("wheel", event => {
-  if (state !== "aiming") return;
+document.addEventListener('wheel', e => {
+  if (state !== 'aiming') return;
 
   power = THREE.MathUtils.clamp(
-    power + (event.deltaY > 0 ? -3 : 3),
-    10,
-    100
+    power + (e.deltaY > 0 ? -3 : 3), 10, 100
   );
 
-  hud();
+  updateHud();
 }, { passive: true });
 
-// KEYBOARD AIMING
+document.addEventListener('keydown', e => {
+  if (state !== 'aiming') return;
 
-document.addEventListener("keydown", event => {
-  if (state !== "aiming") return;
-
-  if (event.code === "Space") {
-    event.preventDefault();
-    spit();
+  if ([
+    'Space',
+    'ArrowUp',
+    'ArrowDown',
+    'ArrowLeft',
+    'ArrowRight'
+  ].includes(e.code)) {
+    e.preventDefault();
   }
 
-  if (event.code === "KeyW") {
-    power = Math.min(100, power + 3);
-  }
+  if (e.code === 'Space') spit();
+  if (e.code === 'KeyW') power = Math.min(100, power + 3);
+  if (e.code === 'KeyS') power = Math.max(10, power - 3);
 
-  if (event.code === "KeyS") {
-    power = Math.max(10, power - 3);
-  }
+  if (e.code === 'ArrowLeft') yaw += 0.035;
+  if (e.code === 'ArrowRight') yaw -= 0.035;
+  if (e.code === 'ArrowUp') pitch += 0.035;
+  if (e.code === 'ArrowDown') pitch -= 0.035;
 
-  if (event.code === "ArrowLeft") yaw += 0.035;
-  if (event.code === "ArrowRight") yaw -= 0.035;
-  if (event.code === "ArrowUp") pitch += 0.035;
-  if (event.code === "ArrowDown") pitch -= 0.035;
+  pitch = THREE.MathUtils.clamp(pitch, -1.54, 0.35);
 
-  pitch = THREE.MathUtils.clamp(pitch, -1.52, 0.4);
-
-  cameraAngles();
-  hud();
+  angles();
+  updateHud();
 });
 
-// CLICK TO AIM / SPIT
-
-renderer.domElement.addEventListener("mousedown", event => {
-  if (event.button !== 0 || state !== "aiming") return;
+renderer.domElement.addEventListener('mousedown', e => {
+  if (e.button !== 0 || state !== 'aiming') return;
 
   if (!locked) {
     lockMouse();
-    msg("AIM WITH MOUSE · CLICK TO SPIT");
+    message('MOUSE TO AIM · CLICK TO SPIT');
   } else {
     spit();
   }
 });
 
-// LAUNCH GUM
+// ======================================
+// SPIT GUM
+// ======================================
 
 function spit() {
-  if (state !== "aiming") return;
+  if (state !== 'aiming') return;
 
-  state = "flying";
+  state = 'flying';
   flightTime = 0;
 
-  const direction = new THREE.Vector3();
-  camera.getWorldDirection(direction);
+  const d = new THREE.Vector3();
+  camera.getWorldDirection(d);
 
-  const speed = 5 + (power / 100) * 24;
-
-  velocity.copy(direction).multiplyScalar(speed);
+  velocity.copy(d).multiplyScalar(5 + power * 0.24);
 
   projectile = new THREE.Mesh(
-    new THREE.SphereGeometry(0.12, 16, 12),
-    m.gum
+    new THREE.IcosahedronGeometry(0.14, 1),
+    M.pink
   );
 
-  projectile.scale.set(1.2, 0.7, 0.9);
+  projectile.scale.set(1.2, 0.65, 0.95);
 
-  projectile.position
-    .copy(camera.position)
-    .addScaledVector(direction, 0.7);
+  projectile.position.copy(camera.position)
+    .addScaledVector(d, 0.75);
 
-  projectile.position.y -= 0.15;
+  projectile.position.y -= 0.12;
   projectile.castShadow = true;
 
   scene.add(projectile);
-  msg("WATCH IT FLY!");
+  message('BON VOYAGE, GUM!');
 }
 
-// PROJECTILE PHYSICS
+// ======================================
+// GUM PHYSICS
+// ======================================
 
-function updateProjectile(dt) {
-  if (state !== "flying" || !projectile) return;
+function updateFlight(dt) {
+  if (state !== 'flying' || !projectile) return;
 
   flightTime += dt;
   previous.copy(projectile.position);
@@ -708,38 +851,28 @@ function updateProjectile(dt) {
 
   projectile.position.addScaledVector(velocity, dt);
 
-  projectile.rotation.x += dt * 7;
-  projectile.rotation.z += dt * 5;
+  projectile.rotation.x += dt * 6;
+  projectile.rotation.z += dt * 4;
 
-  const top = 1.29;
+  const y = 1.38;
 
   if (
-    previous.y > top &&
-    projectile.position.y <= top &&
+    previous.y > y &&
+    projectile.position.y <= y &&
     velocity.y < 0
   ) {
-    const fraction =
-      (previous.y - top) /
+    const p = (previous.y - y) /
       (previous.y - projectile.position.y);
 
     const x = THREE.MathUtils.lerp(
-      previous.x,
-      projectile.position.x,
-      fraction
+      previous.x, projectile.position.x, p
     );
 
     const z = THREE.MathUtils.lerp(
-      previous.z,
-      projectile.position.z,
-      fraction
+      previous.z, projectile.position.z, p
     );
 
-    const distance = Math.hypot(
-      x - trashPosition.x,
-      z - trashPosition.z
-    );
-
-    if (distance < 0.55) {
+    if (Math.hypot(x - target.x, z - target.z) < 0.55) {
       finish(true);
       return;
     }
@@ -750,53 +883,65 @@ function updateProjectile(dt) {
   }
 }
 
-// RESULTS
+// ======================================
+// RESULTS AND NEXT FLOOR
+// ======================================
 
 function finish(hit) {
-  state = hit ? "success" : "miss";
+  state = hit ? 'success' : 'miss';
 
-  if (document.pointerLockElement) {
+  if (document.pointerLockElement === renderer.domElement) {
     document.exitPointerLock();
   }
 
-  if (hit) score += floor * 100;
+  if (hit) {
+    score += floor * 100;
+  } else {
+    misses++;
+  }
 
-  hud();
+  updateHud();
 
-  $("resultTitle").textContent =
-    hit ? "DIRECT HIT!" : "YOU MISSED!";
+  $('resultEyebrow').textContent =
+    hit ? 'ABSOLUTE LEGEND' : 'SO CLOSE (MAYBE)';
 
-  $("resultDescription").textContent = hit
-    ? `You scored ${floor * 100} points! Ready for a higher balcony?`
-    : "Adjust your aim or power and try again.";
+  $('resultTitle').textContent =
+    hit ? 'DIRECT HIT!' : 'SPLAT!';
 
-  $("resultButton").textContent =
-    hit ? "NEXT FLOOR" : "TRY AGAIN";
+  $('resultDescription').textContent = hit
+    ? `+${floor * 100} points! The next balcony is higher.`
+    : 'Missed the can. Adjust your angle and power.';
 
-  $("resultScreen").classList.remove("hidden");
+  $('resultButton').textContent =
+    hit ? 'NEXT FLOOR' : 'TRY AGAIN';
+
+  $('resultScreen').classList.remove('hidden');
 }
 
-// CONTINUE
+$('resultButton').addEventListener('click', () => {
+  $('resultScreen').classList.add('hidden');
 
-$("resultButton").addEventListener("click", () => {
-  $("resultScreen").classList.add("hidden");
-
-  if (state === "success") {
+  if (state === 'success') {
     floor++;
     resetLevel();
-  } else if (state === "miss") {
+    return;
+  }
+
+  if (state === 'miss') {
     if (projectile) {
       scene.remove(projectile);
       projectile.geometry.dispose();
       projectile = null;
     }
 
-    state = "aiming";
-    msg("TRY AGAIN · CLICK TO AIM");
+    state = 'aiming';
+    message('CLICK TO AIM · THEN CLICK TO SPIT');
   }
 });
 
-// MAIN LOOP
+// ======================================
+// MAIN ANIMATION LOOP
+// ======================================
 
 const clock = new THREE.Clock();
 
@@ -806,30 +951,47 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.033);
 
   updateIntro(dt);
-  updateProjectile(dt);
+  updateFlight(dt);
 
-  const ring = trash.getObjectByName("targetRing");
+  const ring = trash.getObjectByName('targetRing');
 
   if (ring) {
     ring.position.y =
-      1.62 + Math.sin(clock.elapsedTime * 2) * 0.08;
+      1.72 + Math.sin(clock.elapsedTime * 2.2) * 0.09;
   }
 
   renderer.render(scene, camera);
 }
 
-// RESIZE
-
-window.addEventListener("resize", () => {
+window.addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
 
-// INITIALIZE
+// ======================================
+// INITIALIZE GAME
+// ======================================
 
-createCity();
-resetLevel();
-state = "idle";
-msg("PRESS START GAME");
+makeCity();
+
+// Set up the world behind the intro screen.
+// Animation starts only after pressing Start.
+
+height = 12;
+target.set(0, 0, -13);
+camera.position.set(0, height, START_Z);
+
+makeBalcony();
+makeTrash();
+makeHands();
+
+hands.visible = false;
+
+yaw = 0;
+pitch = -0.16;
+angles();
+updateHud();
+
+state = 'idle';
 animate();
