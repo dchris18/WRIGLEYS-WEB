@@ -1,34 +1,270 @@
 
 <!doctype html>
 <html lang="en">
+
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
   <title>Gum Spit — Soft City</title>
-  <link rel="stylesheet" href="./style.css?v=8" />
-</head>
-<body>
-  <main id="game" aria-label="3D Gum Spit game"></main>
-  <div id="hud" class="hidden">
-    <div class="topbar"><div class="wordmark">GUM<span>SPIT</span><small> BALCONY CLUB</small></div><div class="stats"><div>FLOOR<strong id="floor">1</strong></div><div>SCORE<strong id="score">0</strong></div><div>WIND<strong id="wind">0.0</strong></div></div></div>
-    <div id="message" class="message">GET READY</div>
-    <div id="crosshair" class="crosshair hidden"><i></i><i></i></div>
-    <div id="powerHud" class="power hidden"><div class="power-label"><span>SPIT POWER</span><strong id="powerText">60%</strong></div><div class="track"><div id="powerFill" class="fill"></div></div><div class="hint">SCROLL / W S TO CHANGE POWER</div></div>
-    <div id="controls" class="controls">MOUSE TO AIM · CLICK OR SPACE TO SPIT · ARROWS TO FINE-TUNE</div>
-  </div>
-  <section id="startScreen" class="overlay"><div class="panel"><div class="eyebrow">A VERY SILLY BALCONY SPORT</div><h1>GUM<br><em>SPIT!</em></h1><p>Unwrap. Chew. Lean over. Nail the trash can.</p><div class="pill">ONE CLICK STARTS THE WHOLE INTRO</div><button id="startButton" disabled>LOADING WORLD…</button><small class="panel-note">HEADPHONES OPTIONAL · DESKTOP RECOMMENDED</small></div></section>
-  <section id="resultScreen" class="overlay hidden"><div class="panel"><div class="eyebrow" id="resultEyebrow">NICE SHOT</div><h2 id="resultTitle">DIRECT HIT!</h2><p id="resultDescription"></p><button id="resultButton">NEXT FLOOR</button></div></section>
-  <section id="errorScreen" class="overlay hidden"><div class="panel"><h2>GAME COULDN'T LOAD</h2><p id="errorText"></p><p class="panel-note">Open via GitHub Pages or a local server, not a file:// address.</p></div></section>
-  <script type="module">
-    import('./script.js?v=8').then(() => {
-      const b = document.getElementById('startButton');
-      b.disabled = false;
-      b.textContent = 'START SPITTING';
-    }).catch(error => {
-      document.getElementById('errorText').textContent = error.message;
-      document.getElementById('errorScreen').classList.remove('hidden');
-      console.error(error);
-    });
+
+  <link
+    rel="stylesheet"
+    href="./style.css?v=9"
+  >
+
+  <!-- THREE.JS IMPORT MAP -->
+  <!-- Fixes the "Failed to resolve module specifier three" error -->
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
+    }
+  }
   </script>
+
+</head>
+
+<body>
+
+  <!-- GAME CANVAS -->
+
+  <main
+    id="game"
+    aria-label="3D Gum Spit game"
+  ></main>
+
+
+  <!-- GAME HUD -->
+
+  <div id="hud" class="hidden">
+
+    <div class="topbar">
+
+      <div class="wordmark">
+        GUM<span>SPIT</span>
+        <small>BALCONY CLUB</small>
+      </div>
+
+      <div class="stats">
+
+        <div>
+          FLOOR
+          <strong id="floor">1</strong>
+        </div>
+
+        <div>
+          SCORE
+          <strong id="score">0</strong>
+        </div>
+
+        <div>
+          WIND
+          <strong id="wind">0.0</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- STATUS MESSAGE -->
+
+    <div id="message" class="message">
+      GET READY
+    </div>
+
+
+    <!-- AIMING CROSSHAIR -->
+
+    <div
+      id="crosshair"
+      class="crosshair hidden"
+    >
+      <i></i>
+      <i></i>
+    </div>
+
+
+    <!-- POWER METER -->
+
+    <div
+      id="powerHud"
+      class="power hidden"
+    >
+
+      <div class="power-label">
+
+        <span>SPIT POWER</span>
+
+        <strong id="powerText">
+          60%
+        </strong>
+
+      </div>
+
+      <div class="track">
+
+        <div
+          id="powerFill"
+          class="fill"
+        ></div>
+
+      </div>
+
+      <div class="hint">
+        SCROLL / W S TO CHANGE POWER
+      </div>
+
+    </div>
+
+
+    <!-- CONTROL INSTRUCTIONS -->
+
+    <div id="controls" class="controls">
+      MOUSE TO AIM · CLICK OR SPACE TO SPIT · ARROWS TO FINE-TUNE
+    </div>
+
+  </div>
+
+
+  <!-- START SCREEN -->
+
+  <section
+    id="startScreen"
+    class="overlay"
+  >
+
+    <div class="panel">
+
+      <div class="eyebrow">
+        A VERY SILLY BALCONY SPORT
+      </div>
+
+      <h1>
+        GUM<br>
+        <em>SPIT!</em>
+      </h1>
+
+      <p>
+        Unwrap. Chew. Lean over. Nail the trash can.
+      </p>
+
+      <div class="pill">
+        ONE CLICK STARTS THE WHOLE INTRO
+      </div>
+
+      <button
+        id="startButton"
+        disabled
+      >
+        LOADING WORLD…
+      </button>
+
+      <small class="panel-note">
+        HEADPHONES OPTIONAL · DESKTOP RECOMMENDED
+      </small>
+
+    </div>
+
+  </section>
+
+
+  <!-- RESULT SCREEN -->
+
+  <section
+    id="resultScreen"
+    class="overlay hidden"
+  >
+
+    <div class="panel">
+
+      <div
+        class="eyebrow"
+        id="resultEyebrow"
+      >
+        NICE SHOT
+      </div>
+
+      <h2 id="resultTitle">
+        DIRECT HIT!
+      </h2>
+
+      <p id="resultDescription"></p>
+
+      <button id="resultButton">
+        NEXT FLOOR
+      </button>
+
+    </div>
+
+  </section>
+
+
+  <!-- ERROR SCREEN -->
+
+  <section
+    id="errorScreen"
+    class="overlay hidden"
+  >
+
+    <div class="panel">
+
+      <h2>
+        GAME COULDN'T LOAD
+      </h2>
+
+      <p id="errorText"></p>
+
+      <p class="panel-note">
+        Open through GitHub Pages or a local server.
+      </p>
+
+    </div>
+
+  </section>
+
+
+  <!-- LOAD GAME SCRIPT -->
+
+  <script type="module">
+
+    import('./script.js?v=9')
+
+      .then(() => {
+
+        const button =
+          document.getElementById('startButton');
+
+        button.disabled = false;
+
+        button.textContent = 'START SPITTING';
+
+      })
+
+      .catch(error => {
+
+        document.getElementById('errorText')
+          .textContent = error.message;
+
+        document.getElementById('errorScreen')
+          .classList.remove('hidden');
+
+        console.error(
+          'Gum Spit failed to load:',
+          error
+        );
+
+      });
+
+  </script>
+
 </body>
+
 </html>
