@@ -1,112 +1,90 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Gum Spit 3D</title>
-
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <div id="game"></div>
+<div id="game"></div>
 
-  <div id="hud">
+<div id="hud">
+  <div class="top">
+    <div class="logo">GUM<span>SPIT!</span></div>
 
-    <div class="top-bar">
-      <div class="logo">GUM<span>SPIT!</span></div>
-
-      <div class="stats">
-        <div class="stat">
-          <small>FLOOR</small>
-          <strong id="floor">1</strong>
-        </div>
-
-        <div class="stat">
-          <small>SCORE</small>
-          <strong id="score">0</strong>
-        </div>
-
-        <div class="stat">
-          <small>WIND</small>
-          <strong id="wind">0.0</strong>
-        </div>
-      </div>
-    </div>
-
-    <div id="crosshair"></div>
-
-    <div id="message">
-      CLICK TO OPEN YOUR GUM
-    </div>
-
-    <div id="powerHud" class="hidden">
-      <div class="power-header">
-        <span>SPIT POWER</span>
-        <span id="powerText">60%</span>
-      </div>
-
-      <div class="power-track">
-        <div id="powerFill"></div>
-      </div>
-    </div>
-
-    <div id="controls">
-      CLICK TO INTERACT
-    </div>
-
-  </div>
-
-  <div id="startScreen">
-    <div class="start-card">
-      <div class="eyebrow">THE BALCONY CHALLENGE</div>
-      <h1>GUM SPIT!</h1>
-      <p>
-        Open a pack of gum, chew it, walk to the edge,
-        and see if you can land it in the trash.
-      </p>
-      <button id="startButton">START GAME</button>
-      <small>FIRST-PERSON 3D ARCADE GAME</small>
+    <div class="stats">
+      <div>FLOOR <b id="floor">1</b></div>
+      <div>SCORE <b id="score">0</b></div>
+      <div>WIND <b id="wind">0</b></div>
     </div>
   </div>
 
-  <div id="resultScreen" class="hidden">
-    <div class="start-card">
-      <h1 id="resultTitle">NICE SHOT!</h1>
-      <p id="resultDescription"></p>
-      <button id="resultButton">CONTINUE</button>
+  <div id="message">READY?</div>
+  <div id="crosshair">+</div>
+
+  <div id="powerHud">
+    <div>
+      SPIT POWER
+      <b id="powerText">60%</b>
+    </div>
+    <div class="meter">
+      <div id="powerFill"></div>
     </div>
   </div>
 
-  <div id="errorScreen" class="hidden">
-    <h2>GAME COULDN'T LOAD</h2>
+  <div id="controls">
+    MOUSE TO AIM · SCROLL TO ADJUST POWER · CLICK OR SPACE TO SPIT
+  </div>
+</div>
+
+<div id="startScreen" class="screen">
+  <div class="panel">
+    <div class="tag">THE BALCONY CHALLENGE</div>
+    <h1>GUM SPIT!</h1>
+    <p>
+      Open a pack, chew, and take your shot.
+      The intro plays automatically.
+    </p>
+    <button id="startButton" disabled>LOADING...</button>
+  </div>
+</div>
+
+<div id="resultScreen" class="screen hidden">
+  <div class="panel">
+    <h1 id="resultTitle"></h1>
+    <p id="resultDescription"></p>
+    <button id="resultButton">CONTINUE</button>
+  </div>
+</div>
+
+<div id="errorScreen" class="screen hidden">
+  <div class="panel">
+    <h2>COULDN'T LOAD THE GAME</h2>
     <p id="errorText"></p>
   </div>
-
+</div>
 
 <script type="module">
-  const startButton = document.getElementById("startButton");
-  const errorScreen = document.getElementById("errorScreen");
-  const errorText = document.getElementById("errorText");
-
-  startButton.disabled = true;
-  startButton.textContent = "LOADING GAME...";
+  const button = document.getElementById("startButton");
 
   import("./script.js")
     .then(() => {
-      startButton.disabled = false;
-      startButton.textContent = "START GAME";
+      button.disabled = false;
+      button.textContent = "START GAME";
     })
-    .catch((error) => {
-      console.error("Game loading error:", error);
+    .catch(error => {
+      document.getElementById("errorText").textContent =
+        error.message;
 
-      errorText.textContent =
-        "The game couldn't start: " + error.message;
+      document.getElementById("errorScreen")
+        .classList.remove("hidden");
 
-      errorScreen.classList.remove("hidden");
+      console.error(error);
     });
 </script>
+
 </body>
 </html>
