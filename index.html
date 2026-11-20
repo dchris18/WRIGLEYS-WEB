@@ -1,10 +1,11 @@
+
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Gum Spit — Spearmint City</title>
-<link rel="stylesheet" href="./style.css?v=18">
+<link rel="stylesheet" href="./style.css?v=19">
 <script type="importmap">
 {
   "imports": {
@@ -70,17 +71,17 @@
 </main>
 
 <script type="module">
-  import('./script.js?v=18')
-    .then(() => {
-      const b = document.getElementById('startButton');
-      b.disabled = false;
-      b.textContent = 'START SPITTING';
-    })
-    .catch(e => {
-      document.getElementById('errorText').textContent = e.message;
-      document.getElementById('errorScreen').classList.remove('hidden');
-      console.error(e);
-    });
+import('./script.js?v=19')
+  .then(() => {
+    const b = document.getElementById('startButton');
+    b.disabled = false;
+    b.textContent = 'START SPITTING';
+  })
+  .catch(e => {
+    document.getElementById('errorText').textContent = e.message;
+    document.getElementById('errorScreen').classList.remove('hidden');
+    console.error(e);
+  });
 </script>
 </body>
 </html>
