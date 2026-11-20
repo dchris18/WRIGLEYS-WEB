@@ -1,8 +1,7 @@
-
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 
-// GUM SPIT V7 — DENSE, REGENERATING TOY CITY
+// GUM SPIT V8 — DETAILED HANDS & SPEARMINT WRAPPER
 const $=id=>document.getElementById(id), clamp=THREE.MathUtils.clamp, lerp=THREE.MathUtils.lerp;
 const ease=t=>{t=clamp(t,0,1);return t*t*(3-2*t)};
 const scene=new THREE.Scene();scene.background=new THREE.Color('#91c3bf');scene.fog=new THREE.Fog('#91c3bf',115,245);
@@ -81,13 +80,163 @@ const target=new THREE.Vector3(),velocity=new THREE.Vector3(),previous=new THREE
 let pack,flap,stick,rightHand,chew;
 function makeBalcony(){balcony.clear();let ground=height-1.65;box(balcony,28,100,10,M.peach,0,ground-14,9.4);box(balcony,8.6,.32,6.3,M.walk,0,ground-.2,-1.05);box(balcony,8.8,.15,.3,M.cream,0,ground-.08,-4.12);for(let y of [.42,1.08])box(balcony,8.5,.12,.13,M.metal,0,ground+y,-4.02);for(let x=-4.1;x<=4.1;x+=.65)cyl(balcony,.055,.055,1.1,M.metal,x,ground+.56,-4.02);for(let s of [-1,1]){box(balcony,.13,.13,6.3,M.metal,s*4.25,ground+1.08,-1.05);for(let z=-3.9;z<2;z+=.7)cyl(balcony,.05,.05,1.1,M.metal,s*4.25,ground+.56,z)}box(balcony,3.5,4.5,.25,M.cream,0,ground+2.15,3.6);box(balcony,2.7,3.9,.08,M.glass,0,ground+2.1,3.4);cyl(balcony,.43,.35,.6,M.coral,3.1,ground+.3,.5);ball(balcony,.6,M.leaf2,3.1,ground+1,.5)}
 function makeBin(){bin.clear();bin.position.copy(target);cyl(bin,.73,.56,1.35,M.teal,0,.675,0,24);cyl(bin,.6,.6,.035,M.dark,0,1.37,0,24);let ring=new THREE.Mesh(new THREE.TorusGeometry(.68,.07,10,32),M.cream);ring.rotation.x=Math.PI/2;ring.position.y=1.4;bin.add(ring);let glow=new THREE.Mesh(new THREE.TorusGeometry(.87,.035,8,32),new THREE.MeshBasicMaterial({color:0xffd886}));glow.rotation.x=Math.PI/2;glow.position.y=1.73;glow.name='glow';bin.add(glow);for(let i=0;i<12;i++){let a=i*Math.PI/6;box(bin,.045,.94,.045,M.leaf3,Math.cos(a)*.6,.7,Math.sin(a)*.6)}}
-function makeHands(){hands.clear();for(let s of [-1,1]){let g=new THREE.Group();g.position.set(s*.42,-.48,-.64);hands.add(g);let arm=cyl(g,.12,.15,.42,M.blue,s*.03,-.27);arm.rotation.z=s*.25;let palm=ball(g,.16,M.skin);palm.scale.set(.9,1.2,.6);for(let i=0;i<4;i++)cyl(g,.035,.04,.17,M.skin,(i-1.5)*.075,.14,-.04);if(s===1)rightHand=g}pack=new THREE.Group();pack.position.set(-.03,-.3,-.76);hands.add(pack);box(pack,.74,.36,.16,M.cream);for(let y of [-.14,.14])box(pack,.75,.07,.17,M.leaf,y*0, y,0);flap=new THREE.Group();flap.position.y=.18;pack.add(flap);box(flap,.74,.18,.035,M.cream,0,.09);stick=new THREE.Group();stick.position.set(.1,.02,-.18);pack.add(stick);box(stick,.115,.28,.05,M.white);chew=ball(hands,.08,M.gum,0,-.1,-.48);chew.visible=false}
+
+// --- High-detail first-person hands and seven-stick Spearmint pack ---
+// The foreground models deliberately use smoother geometry than the distant city.
+let leftHand, gumWrapper, foilStick;
+const handSkin = new THREE.MeshStandardMaterial({color:'#e5ad86',roughness:.78});
+const nailMat = new THREE.MeshStandardMaterial({color:'#f4cdb4',roughness:.62});
+const wrapperWhite = new THREE.MeshStandardMaterial({color:'#fffdf5',roughness:.64});
+const wrapperRed = new THREE.MeshStandardMaterial({color:'#ae2339',roughness:.7});
+const wrapperGreen = new THREE.MeshStandardMaterial({color:'#075844',roughness:.68});
+const foilMat = new THREE.MeshStandardMaterial({color:'#e3e6d9',metalness:.24,roughness:.42});
+
+function capsule(parent, radius, length, material, x,y,z, rotationZ=0){
+  const o=new THREE.Mesh(new THREE.CapsuleGeometry(radius,Math.max(.005,length-2*radius),6,12),material);
+  o.position.set(x,y,z);o.rotation.z=rotationZ;o.castShadow=true;parent.add(o);return o;
+}
+function finger(parent,x,y,z,length,angle=0){
+  // Distinct proximal and distal phalanges with a subtly visible knuckle.
+  const root=new THREE.Group();root.position.set(x,y,z);root.rotation.z=angle;parent.add(root);
+  const upper=length*.57, lower=length*.43;
+  capsule(root,.037,upper,handSkin,0,upper*.48,0);
+  const joint=ball(root,.037,handSkin,0,upper*.94,0);joint.geometry=new THREE.SphereGeometry(.037,10,8);
+  const tip=new THREE.Group();tip.position.set(0,upper*.94,0);root.add(tip);
+  capsule(tip,.032,lower,handSkin,0,lower*.44,-.008);
+  const nail=box(tip,.049,.065,.009,nailMat,0,lower*.73,-.034,.014);
+  return {root,tip};
+}
+function createHand(side){
+  const g=new THREE.Group();hands.add(g);
+  g.position.set(side*.52,-.58,-.98);
+  g.rotation.z=side*.18;
+  // A tapered wrist/forearm, a broad flattened palm and an actual thumb.
+  const forearm=capsule(g,.112,.48,M.blue,side*.055,-.38,.07,side*-.12);
+  const cuff=cyl(g,.123,.13,.13,M.navy,side*.025,-.16,.035,18);
+  const wrist=capsule(g,.092,.21,handSkin,0,-.09,0);
+  const palm=new THREE.Mesh(new THREE.SphereGeometry(1,24,16),handSkin);
+  palm.scale.set(.22,.265,.085);palm.position.set(0,.18,0);palm.castShadow=true;g.add(palm);
+  // Palm crease and knuckles are subtle, not dark outlines.
+  const fingers=[];
+  const lengths=[.27,.33,.32,.255];
+  for(let i=0;i<4;i++){
+    const x=(i-1.5)*.105;
+    const f=finger(g,x,.35,-.006,lengths[i],(i-1.5)*-.055);
+    fingers.push(f);
+    const knuckle=ball(g,.045,handSkin,x,.365,-.002);
+    knuckle.geometry=new THREE.SphereGeometry(.045,12,8);
+  }
+  const thumbBase=new THREE.Group();thumbBase.position.set(-side*.205,.12,-.005);thumbBase.rotation.z=side*.65;g.add(thumbBase);
+  capsule(thumbBase,.065,.235,handSkin,0,.105,0);
+  const thumbTip=new THREE.Group();thumbTip.position.set(0,.205,0);thumbTip.rotation.z=-side*.38;thumbBase.add(thumbTip);
+  capsule(thumbTip,.053,.18,handSkin,0,.075,-.01);
+  box(thumbTip,.065,.068,.012,nailMat,0,.12,-.058,.02);
+  return {g,fingers,thumbBase,thumbTip};
+}
+function gumPackTexture(){
+  const c=document.createElement('canvas');c.width=1536;c.height=640;
+  const a=c.getContext('2d');
+  a.fillStyle='#fffdf8';a.fillRect(0,0,c.width,c.height);
+  // Bold burgundy folded wrapper ends, like the supplied Spearmint reference.
+  a.fillStyle='#ae2035';a.fillRect(0,0,175,640);a.fillRect(1375,0,161,640);
+  a.fillStyle='#fffdf8';a.beginPath();a.moveTo(105,0);a.lineTo(1425,0);a.lineTo(1320,640);a.lineTo(180,640);a.closePath();a.fill();
+  a.fillStyle='#ad2637';a.font='900 104px Arial';a.textAlign='center';a.fillText("WRIGLEY'S",790,175);
+  // Green angled arrow banner, including the white arrow point.
+  a.fillStyle='#065740';a.beginPath();a.moveTo(275,235);a.lineTo(1160,235);a.lineTo(1300,332);a.lineTo(1160,430);a.lineTo(275,430);a.lineTo(195,332);a.closePath();a.fill();
+  a.strokeStyle='#ffffff';a.lineWidth=15;a.stroke();
+  a.fillStyle='#fff';a.font='900 105px Arial';a.fillText('SPEARMINT',770,363);
+  a.fillStyle='#ad2637';a.font='800 54px Arial';a.fillText('CHEWING GUM',780,512);
+  a.font='800 36px Arial';a.fillText('7 STICKS',1320,570);
+  a.fillStyle='#176b4e';a.beginPath();a.ellipse(1350,140,38,25,-.3,0,Math.PI*2);a.fill();
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return t;
+}
+function makeHands(){
+  hands.clear();
+  leftHand=createHand(-1);rightHand=createHand(1);
+  // Turn palms inward so the fingers curl naturally around the package edges.
+  leftHand.g.rotation.y=-.3;rightHand.g.rotation.y=.3;
+  for(const h of [leftHand,rightHand]){
+    h.fingers.forEach((f,i)=>{f.root.rotation.x=-.35;f.tip.rotation.x=-.42-(i%2)*.1});
+    h.thumbBase.rotation.x=-.28;
+  }
+  pack=new THREE.Group();hands.add(pack);
+  pack.position.set(0,-.26,-1.04);
+  pack.rotation.set(-.12,.08,-.04);
+  // Slim pack, bevels small enough to preserve its crisp printed edges.
+  box(pack,1.02,.405,.18,wrapperWhite,0,0,0,.025);
+  box(pack,.12,.407,.184,wrapperRed,-.46,0,0,.018);
+  box(pack,.12,.407,.184,wrapperRed,.46,0,0,.018);
+  const label=new THREE.Mesh(new THREE.PlaneGeometry(.965,.37),new THREE.MeshBasicMaterial({map:gumPackTexture(),transparent:false}));
+  label.position.z=.093;pack.add(label);
+  // Folded edges and narrow printed side panel.
+  box(pack,.96,.022,.185,wrapperWhite,0,.204,0,.009);
+  box(pack,.96,.022,.185,wrapperRed,0,-.204,0,.009);
+  box(pack,.74,.009,.014,wrapperGreen,0,.212,.03,.003);
+  flap=new THREE.Group();flap.position.set(0,.204,-.01);pack.add(flap);
+  box(flap,1.0,.145,.024,wrapperWhite,0,.072,0,.008);
+  box(flap,.13,.145,.026,wrapperRed,-.435,.072,0,.006);
+  box(flap,.13,.145,.026,wrapperRed,.435,.072,0,.006);
+  // The foil-wrapped gum starts behind the opened flap.
+  stick=new THREE.Group();pack.add(stick);stick.position.set(.16,.025,-.12);
+  foilStick=box(stick,.145,.315,.055,foilMat,0,0,0,.012);
+  for(let i=0;i<3;i++)box(stick,.13,.009,.058,wrapperWhite,0,-.095+i*.095,.004,.002);
+  chew=ball(hands,.052,M.gum,0,-.05,-.68);chew.visible=false;
+  // Initial grip: fingertips frame the pack without covering the label.
+  leftHand.g.position.set(-.55,-.56,-1.01);
+  rightHand.g.position.set(.55,-.56,-1.01);
+}
+
 function hud(){ $('floor').textContent=floor;$('score').textContent=score;$('wind').textContent=(wind>=0?'+':'')+wind.toFixed(1);$('powerText').textContent=power+'%';$('powerFill').style.width=power+'%';$('shots').innerHTML='<div>GUM LEFT</div><div class="pieces">'+Array.from({length:3},(_,i)=>`<div class="piece ${i>=shots?'used':''}"></div>`).join('')+'</div>'}
 function message(s){$('message').textContent=s}function angles(){camera.rotation.y=yaw;camera.rotation.x=pitch}function aimAngles(){let d=target.clone().add(new THREE.Vector3(0,1.38,0)).sub(camera.position).normalize();return{yaw:Math.atan2(-d.x,-d.z),pitch:Math.asin(d.y)}}
 function removeGum(){if(projectile){scene.remove(projectile);projectile.geometry.dispose();projectile=null}}
 function resetLevel(){height=12+(floor-1)*6;shots=3;power=60;wind=(Math.random()-.5)*Math.min(.5*floor,3);target.set((Math.random()-.5)*3,.34,-12-Math.random()*1.8);createCity(floor);makeBalcony();makeBin();makeHands();hands.visible=true;removeGum();camera.position.set(0,height,START);yaw=0;pitch=-.16;angles();intro=0;state='intro';$('crosshair').classList.add('hidden');$('powerHud').classList.add('hidden');message('UNWRAPPING THE GUM...');hud()}
 $('startButton').addEventListener('click',()=>{if(state!=='idle')return;$('startScreen').classList.add('hidden');$('hud').classList.remove('hidden');resetLevel()});
-function updateIntro(dt){if(state!=='intro')return;intro+=dt;let t=intro;if(t<.8){flap.rotation.x=-2.4*ease(t/.7);pack.rotation.z=Math.sin(t*8)*.05}else if(t<1.4){message('ONE FRESH STICK...');let p=ease((t-.8)/.6);stick.position.set(.1+p*.18,.02+p*.37,-.18+p*.16);rightHand.position.y=-.48+p*.24}else if(t<2){message('CHOMP CHOMP...');let p=ease((t-1.4)/.6);pack.position.y=-.3-p*.6;chew.visible=true;chew.scale.setScalar(1+Math.sin(t*26)*.12)}else if(t<3.5){message('TO THE BALCONY...');hands.visible=false;let p=ease((t-2)/1.5);camera.position.z=lerp(START,EDGE,p);camera.position.y=height+Math.sin((t-2)*17)*.03*(1-p);pitch=lerp(-.16,-.48,p);angles()}else if(t<4){message('THERE IT IS...');camera.position.set(0,height,EDGE);let a=aimAngles(),p=ease((t-3.5)/.5);yaw=lerp(0,a.yaw,p);pitch=lerp(-.48,a.pitch,p);angles()}else{camera.position.set(0,height,EDGE);let a=aimAngles();yaw=a.yaw;pitch=a.pitch;angles();state='aiming';$('crosshair').classList.remove('hidden');$('powerHud').classList.remove('hidden');message('MOUSE TO AIM · CLICK TO SPIT')}}
+function updateIntro(dt){
+  if(state!=='intro')return;
+  intro+=dt;const t=intro;
+  if(t<.8){
+    message('UNWRAPPING THE GUM...');
+    const p=ease(t/.8);
+    flap.rotation.x=-2.2*p;
+    pack.rotation.z=-.04+Math.sin(t*7)*.014;
+    rightHand.g.position.x=.55-.13*p;
+    rightHand.g.position.y=-.56+.1*p;
+    rightHand.fingers.forEach((f,i)=>f.root.rotation.x=-.35-.35*p);
+  }else if(t<1.4){
+    message('ONE FRESH STICK...');
+    const p=ease((t-.8)/.6);
+    stick.position.set(.16+.10*p,.025+.39*p,-.12+.08*p);
+    rightHand.g.position.set(.42-.15*p,-.46+.27*p,-1.01-.1*p);
+    rightHand.g.rotation.z=.18-.3*p;
+    rightHand.fingers.forEach(f=>f.tip.rotation.x=-.42-.3*p);
+  }else if(t<2){
+    message('CHOMP CHOMP...');
+    const p=ease((t-1.4)/.6);
+    stick.position.y=.415+p*.26;
+    stick.position.z=-.04+p*.15;
+    pack.position.y=-.26-.48*p;
+    leftHand.g.position.y=-.56-.4*p;
+    rightHand.g.position.set(.27-.22*p,-.19+.15*p,-1.11+.35*p);
+    chew.visible=true;
+    chew.scale.setScalar(.75+Math.sin(t*24)*.12);
+  }else if(t<3.5){
+    message('TO THE BALCONY...');hands.visible=false;
+    const p=ease((t-2)/1.5);
+    camera.position.z=lerp(START,EDGE,p);
+    camera.position.y=height+Math.sin((t-2)*17)*.03*(1-p);
+    pitch=lerp(-.16,-.48,p);angles();
+  }else if(t<4){
+    message('THERE IT IS...');camera.position.set(0,height,EDGE);
+    const a=aimAngles(),p=ease((t-3.5)/.5);
+    yaw=lerp(0,a.yaw,p);pitch=lerp(-.48,a.pitch,p);angles();
+  }else{
+    camera.position.set(0,height,EDGE);
+    const a=aimAngles();yaw=a.yaw;pitch=a.pitch;angles();
+    state='aiming';$('crosshair').classList.remove('hidden');
+    $('powerHud').classList.remove('hidden');message('MOUSE TO AIM · CLICK TO SPIT');
+  }
+}
+
 function lockMouse(){let p=renderer.domElement.requestPointerLock?.();p?.catch?.(()=>{})}document.addEventListener('pointerlockchange',()=>{locked=document.pointerLockElement===renderer.domElement;if(state==='aiming'&&!locked)message('CLICK TO AIM · THEN CLICK TO SPIT')});
 document.addEventListener('mousemove',e=>{if(!locked||state!=='aiming')return;yaw=clamp(yaw-e.movementX*.0022,-1.35,1.35);pitch=clamp(pitch-e.movementY*.0022,-1.54,.35);angles()});
 document.addEventListener('wheel',e=>{if(state!=='aiming')return;power=clamp(power+(e.deltaY>0?-3:3),10,100);hud()},{passive:true});

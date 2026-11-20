@@ -1,11 +1,10 @@
-
 <!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gum Spit — Tiny City</title>
-<link rel="stylesheet" href="./style.css?v=17">
+<title>Gum Spit — Spearmint City</title>
+<link rel="stylesheet" href="./style.css?v=18">
 <script type="importmap">
 {
   "imports": {
@@ -46,9 +45,7 @@
       <h1>GUM<br><em>SPIT!</em></h1>
       <p>Three shots. One tiny trash can. A whole city below.</p>
       <button id="startButton" disabled>LOADING CITY...</button>
-      <div class="small">
-        Aim carefully. Pedestrians cost you 50 points.
-      </div>
+      <div class="small">Aim carefully. Pedestrians cost you 50 points.</div>
     </div>
   </div>
 
@@ -73,18 +70,16 @@
 </main>
 
 <script type="module">
-  import("./script.js?v=17")
+  import('./script.js?v=18')
     .then(() => {
-      const button = document.getElementById("startButton");
-      button.disabled = false;
-      button.textContent = "START SPITTING";
+      const b = document.getElementById('startButton');
+      b.disabled = false;
+      b.textContent = 'START SPITTING';
     })
-    .catch(error => {
-      document.getElementById("errorText").textContent =
-        error.message;
-      document.getElementById("errorScreen")
-        .classList.remove("hidden");
-      console.error(error);
+    .catch(e => {
+      document.getElementById('errorText').textContent = e.message;
+      document.getElementById('errorScreen').classList.remove('hidden');
+      console.error(e);
     });
 </script>
 </body>
