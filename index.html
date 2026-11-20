@@ -2,103 +2,33 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gum Spit — Balcony Club</title>
-  <link rel="stylesheet" href="./style.css?v=7">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gum Spit — Soft City</title>
+  <link rel="stylesheet" href="./style.css?v=8" />
 </head>
 <body>
-  <main id="game"></main>
-
+  <main id="game" aria-label="3D Gum Spit game"></main>
   <div id="hud" class="hidden">
-    <div class="topbar">
-      <div class="wordmark">
-        GUM<span>SPIT</span>
-        <small>BALCONY CLUB</small>
-      </div>
-
-      <div class="stats">
-        <div>FLOOR<strong id="floor">1</strong></div>
-        <div>SCORE<strong id="score">0</strong></div>
-        <div>WIND<strong id="wind">0.0</strong></div>
-      </div>
-    </div>
-
+    <div class="topbar"><div class="wordmark">GUM<span>SPIT</span><small> BALCONY CLUB</small></div><div class="stats"><div>FLOOR<strong id="floor">1</strong></div><div>SCORE<strong id="score">0</strong></div><div>WIND<strong id="wind">0.0</strong></div></div></div>
     <div id="message" class="message">GET READY</div>
-
-    <div id="crosshair" class="crosshair hidden">
-      <i></i><i></i>
-    </div>
-
-    <div id="powerHud" class="power hidden">
-      <div class="power-label">
-        <span>SPIT POWER</span>
-        <strong id="powerText">60%</strong>
-      </div>
-
-      <div class="track">
-        <div id="powerFill" class="fill"></div>
-      </div>
-
-      <div class="hint">SCROLL / W S TO CHANGE POWER</div>
-    </div>
-
-    <div id="controls" class="controls">
-      MOUSE TO AIM · CLICK OR SPACE TO SPIT · ARROWS TO FINE-TUNE
-    </div>
+    <div id="crosshair" class="crosshair hidden"><i></i><i></i></div>
+    <div id="powerHud" class="power hidden"><div class="power-label"><span>SPIT POWER</span><strong id="powerText">60%</strong></div><div class="track"><div id="powerFill" class="fill"></div></div><div class="hint">SCROLL / W S TO CHANGE POWER</div></div>
+    <div id="controls" class="controls">MOUSE TO AIM · CLICK OR SPACE TO SPIT · ARROWS TO FINE-TUNE</div>
   </div>
-
-  <section id="startScreen" class="overlay">
-    <div class="panel">
-      <div class="eyebrow">A VERY SERIOUS BALCONY SPORT</div>
-      <h1>GUM<br><em>SPIT!</em></h1>
-      <p>Unwrap. Chew. Lean over. Nail the trash can.</p>
-
-      <div class="pill">ONE CLICK STARTS THE WHOLE INTRO</div>
-
-      <button id="startButton" disabled>LOADING WORLD…</button>
-
-      <small class="panel-note">
-        HEADPHONES OPTIONAL · DESKTOP RECOMMENDED
-      </small>
-    </div>
-  </section>
-
-  <section id="resultScreen" class="overlay hidden">
-    <div class="panel">
-      <div class="eyebrow" id="resultEyebrow">NICE SHOT</div>
-      <h2 id="resultTitle">DIRECT HIT!</h2>
-      <p id="resultDescription"></p>
-      <button id="resultButton">NEXT FLOOR</button>
-    </div>
-  </section>
-
-  <section id="errorScreen" class="overlay hidden">
-    <div class="panel">
-      <h2>GAME COULDN'T LOAD</h2>
-      <p id="errorText"></p>
-      <p class="panel-note">
-        Open through GitHub Pages or a local server.
-      </p>
-    </div>
-  </section>
-
+  <section id="startScreen" class="overlay"><div class="panel"><div class="eyebrow">A VERY SILLY BALCONY SPORT</div><h1>GUM<br><em>SPIT!</em></h1><p>Unwrap. Chew. Lean over. Nail the trash can.</p><div class="pill">ONE CLICK STARTS THE WHOLE INTRO</div><button id="startButton" disabled>LOADING WORLD…</button><small class="panel-note">HEADPHONES OPTIONAL · DESKTOP RECOMMENDED</small></div></section>
+  <section id="resultScreen" class="overlay hidden"><div class="panel"><div class="eyebrow" id="resultEyebrow">NICE SHOT</div><h2 id="resultTitle">DIRECT HIT!</h2><p id="resultDescription"></p><button id="resultButton">NEXT FLOOR</button></div></section>
+  <section id="errorScreen" class="overlay hidden"><div class="panel"><h2>GAME COULDN'T LOAD</h2><p id="errorText"></p><p class="panel-note">Open via GitHub Pages or a local server, not a file:// address.</p></div></section>
   <script type="module">
-    import("./script.js?v=7")
-      .then(() => {
-        const button = document.getElementById("startButton");
-        button.disabled = false;
-        button.textContent = "START SPITTING";
-      })
-      .catch(error => {
-        document.getElementById("errorText").textContent =
-          error.message;
-
-        document.getElementById("errorScreen")
-          .classList.remove("hidden");
-
-        console.error(error);
-      });
+    import('./script.js?v=8').then(() => {
+      const b = document.getElementById('startButton');
+      b.disabled = false;
+      b.textContent = 'START SPITTING';
+    }).catch(error => {
+      document.getElementById('errorText').textContent = error.message;
+      document.getElementById('errorScreen').classList.remove('hidden');
+      console.error(error);
+    });
   </script>
 </body>
 </html>

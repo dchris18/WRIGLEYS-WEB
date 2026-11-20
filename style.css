@@ -9,12 +9,9 @@
   --green: #70a58b;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html,
-body {
+html, body {
   width: 100%;
   height: 100%;
   margin: 0;
@@ -23,20 +20,9 @@ body {
   font-family: 'DM Sans', Arial, sans-serif;
 }
 
-#game {
-  position: fixed;
-  inset: 0;
-}
-
-#game canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.hidden {
-  display: none !important;
-}
+#game { position: fixed; inset: 0; }
+#game canvas { display: block; width: 100%; height: 100%; }
+.hidden { display: none !important; }
 
 #hud {
   position: fixed;
@@ -65,11 +51,7 @@ body {
   color: #fff;
   line-height: 1;
 }
-
-.wordmark span {
-  color: var(--yellow);
-}
-
+.wordmark span { color: var(--yellow); }
 .wordmark small {
   display: block;
   font-size: 9px;
@@ -77,12 +59,7 @@ body {
   margin-top: 6px;
   color: #f5eee1;
 }
-
-.stats {
-  display: flex;
-  gap: 8px;
-}
-
+.stats { display: flex; gap: 8px; }
 .stats > div {
   min-width: 75px;
   padding: 9px 12px;
@@ -95,14 +72,12 @@ body {
   letter-spacing: 1.5px;
   backdrop-filter: blur(8px);
 }
-
 .stats strong {
   display: block;
   font-size: 23px;
   letter-spacing: 0;
   margin-top: 2px;
 }
-
 .message {
   position: absolute;
   top: 17%;
@@ -118,7 +93,6 @@ body {
   white-space: nowrap;
   max-width: 90vw;
 }
-
 .crosshair {
   position: absolute;
   left: 50%;
@@ -127,25 +101,21 @@ body {
   height: 23px;
   transform: translate(-50%, -50%);
 }
-
 .crosshair i {
   position: absolute;
   background: #fff;
   box-shadow: 0 1px 5px #27383b;
 }
-
 .crosshair i:first-child {
   width: 2px;
   height: 22px;
   left: 10px;
 }
-
 .crosshair i:last-child {
   height: 2px;
   width: 22px;
   top: 10px;
 }
-
 .power {
   position: absolute;
   bottom: 73px;
@@ -158,7 +128,6 @@ body {
   border-radius: 15px;
   backdrop-filter: blur(8px);
 }
-
 .power-label {
   display: flex;
   justify-content: space-between;
@@ -166,7 +135,6 @@ body {
   font-weight: 900;
   letter-spacing: 1.3px;
 }
-
 .track {
   height: 12px;
   border-radius: 30px;
@@ -174,19 +142,12 @@ body {
   background: #14292d;
   margin-top: 12px;
 }
-
 .fill {
   height: 100%;
   width: 60%;
   border-radius: 30px;
-  background: linear-gradient(
-    90deg,
-    #74b79a,
-    #f3d36b,
-    #ee766e
-  );
+  background: linear-gradient(90deg, #74b79a, #f3d36b, #ee766e);
 }
-
 .hint {
   text-align: center;
   font-size: 9px;
@@ -194,7 +155,6 @@ body {
   opacity: .75;
   margin-top: 9px;
 }
-
 .controls {
   position: absolute;
   bottom: 23px;
@@ -206,7 +166,6 @@ body {
   letter-spacing: 1.2px;
   padding: 0 14px;
 }
-
 .overlay {
   position: fixed;
   inset: 0;
@@ -217,7 +176,6 @@ body {
   background: #1e363c9e;
   backdrop-filter: blur(7px);
 }
-
 .panel {
   position: relative;
   width: min(460px, 91vw);
@@ -230,7 +188,6 @@ body {
   padding: 34px 32px 30px;
   transform: rotate(-1deg);
 }
-
 .eyebrow {
   display: inline-block;
   background: var(--yellow);
@@ -241,7 +198,6 @@ body {
   font-weight: 900;
   letter-spacing: 1.7px;
 }
-
 .panel h1 {
   font-size: clamp(65px, 12vw, 105px);
   letter-spacing: -8px;
@@ -249,26 +205,22 @@ body {
   margin: 25px 0 22px;
   font-weight: 900;
 }
-
 .panel h1 em {
   color: var(--pink);
   font-style: normal;
   text-shadow: 4px 4px 0 var(--ink);
 }
-
 .panel h2 {
   font-size: clamp(35px, 7vw, 56px);
   letter-spacing: -2px;
   line-height: 1;
   margin: 22px 0;
 }
-
 .panel p {
   font-size: 15px;
   line-height: 1.5;
   font-weight: 700;
 }
-
 .pill {
   margin: 18px auto 0;
   display: table;
@@ -279,7 +231,6 @@ body {
   font-weight: 900;
   letter-spacing: 1px;
 }
-
 button {
   display: block;
   margin: 23px auto 0;
@@ -293,17 +244,11 @@ button {
   color: var(--ink);
   transition: transform .1s, box-shadow .1s;
 }
-
 button:hover:not(:disabled) {
   transform: translateY(2px);
   box-shadow: 0 4px 0 var(--ink);
 }
-
-button:disabled {
-  opacity: .6;
-  cursor: wait;
-}
-
+button:disabled { opacity: .6; cursor: wait; }
 .panel-note {
   display: block;
   font-size: 10px;
@@ -312,42 +257,13 @@ button:disabled {
   opacity: .65;
   margin-top: 24px;
 }
-
 @media (max-width: 600px) {
-  .topbar {
-    top: 14px;
-    left: 12px;
-    right: 12px;
-  }
-
-  .wordmark {
-    font-size: 23px;
-  }
-
-  .stats > div {
-    min-width: 52px;
-    padding: 8px 5px;
-    font-size: 9px;
-  }
-
-  .stats strong {
-    font-size: 17px;
-  }
-
-  .message {
-    top: 16%;
-    font-size: 10px;
-  }
-
-  .controls {
-    font-size: 9px;
-  }
-
-  .panel {
-    padding: 26px 18px;
-  }
-
-  .panel h1 {
-    letter-spacing: -5px;
-  }
+  .topbar { top: 14px; left: 12px; right: 12px; }
+  .wordmark { font-size: 23px; }
+  .stats > div { min-width: 52px; padding: 8px 5px; font-size: 9px; }
+  .stats strong { font-size: 17px; }
+  .message { top: 16%; font-size: 10px; }
+  .controls { font-size: 9px; }
+  .panel { padding: 26px 18px; }
+  .panel h1 { letter-spacing: -5px; }
 }
