@@ -1,20 +1,15 @@
 
-import * as THREE from
-  "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js";
 
-// ======================================
+// =======================================
 // GUM SPIT 3D
-// AUTOMATIC INTRO + BALCONY GAME
-// ======================================
+// =======================================
 
 const $ = id => document.getElementById(id);
 
-// --------------------------------------
 // THREE.JS SETUP
-// --------------------------------------
 
 const scene = new THREE.Scene();
-
 scene.background = new THREE.Color(0x91cbe9);
 scene.fog = new THREE.Fog(0x91cbe9, 75, 240);
 
@@ -31,20 +26,14 @@ const renderer = new THREE.WebGLRenderer({
   antialias: true
 });
 
-renderer.setPixelRatio(
-  Math.min(devicePixelRatio, 2)
-);
-
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
-
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
 $("game").appendChild(renderer.domElement);
 
-// --------------------------------------
 // LIGHTING
-// --------------------------------------
 
 scene.add(
   new THREE.HemisphereLight(
@@ -54,32 +43,20 @@ scene.add(
   )
 );
 
-const sun = new THREE.DirectionalLight(
-  0xfff1d6,
-  2.3
-);
-
+const sun = new THREE.DirectionalLight(0xfff1d6, 2.3);
 sun.position.set(-28, 60, -32);
 sun.castShadow = true;
-
 sun.shadow.mapSize.set(1024, 1024);
-
 sun.shadow.camera.left = -65;
 sun.shadow.camera.right = 65;
 sun.shadow.camera.top = 65;
 sun.shadow.camera.bottom = -65;
-
 scene.add(sun);
 
-// --------------------------------------
 // MATERIALS
-// --------------------------------------
 
 const material = (color, roughness = 0.85) =>
-  new THREE.MeshStandardMaterial({
-    color,
-    roughness
-  });
+  new THREE.MeshStandardMaterial({ color, roughness });
 
 const m = {
   brick: material(0xb46a5b),
@@ -100,48 +77,37 @@ const m = {
   trunk: material(0x78553f)
 };
 
-// --------------------------------------
 // GEOMETRY HELPERS
-// --------------------------------------
 
 function box(parent, w, h, d, mat, x, y, z) {
-  const object = new THREE.Mesh(
+  const obj = new THREE.Mesh(
     new THREE.BoxGeometry(w, h, d),
     mat
   );
 
-  object.position.set(x, y, z);
-  object.castShadow = true;
-  object.receiveShadow = true;
+  obj.position.set(x, y, z);
+  obj.castShadow = true;
+  obj.receiveShadow = true;
+  parent.add(obj);
 
-  parent.add(object);
-
-  return object;
+  return obj;
 }
 
-function cylinder(
-  parent, top, bottom, height,
-  mat, x, y, z
-) {
-  const object = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      top, bottom, height, 24
-    ),
+function cylinder(parent, top, bottom, h, mat, x, y, z) {
+  const obj = new THREE.Mesh(
+    new THREE.CylinderGeometry(top, bottom, h, 24),
     mat
   );
 
-  object.position.set(x, y, z);
-  object.castShadow = true;
-  object.receiveShadow = true;
+  obj.position.set(x, y, z);
+  obj.castShadow = true;
+  obj.receiveShadow = true;
+  parent.add(obj);
 
-  parent.add(object);
-
-  return object;
+  return obj;
 }
 
-// --------------------------------------
 // GROUPS
-// --------------------------------------
 
 const city = new THREE.Group();
 const balcony = new THREE.Group();
@@ -151,106 +117,57 @@ const hands = new THREE.Group();
 scene.add(city, balcony, trash, camera);
 camera.add(hands);
 
-// --------------------------------------
-// CITY ENVIRONMENT
-// --------------------------------------
+// CITY
 
 function createCity() {
+  box(city, 400, 1, 400, m.grass, 0, -0.6, -70);
+  box(city, 160, 0.14, 19, m.sidewalk, 0, 0, -14);
+  box(city, 160, 0.1, 24, m.road, 0, -0.04, -36);
+  box(city, 160, 0.14, 12, m.sidewalk, 0, 0, -55);
 
-  box(
-    city, 400, 1, 400,
-    m.grass, 0, -0.6, -70
-  );
-
-  box(
-    city, 160, 0.14, 19,
-    m.sidewalk, 0, 0, -14
-  );
-
-  box(
-    city, 160, 0.1, 24,
-    m.road, 0, -0.04, -36
-  );
-
-  box(
-    city, 160, 0.14, 12,
-    m.sidewalk, 0, 0, -55
-  );
-
-  // Sidewalk lines
   for (let x = -80; x <= 80; x += 4) {
     box(
       city, 0.035, 0.015, 19,
-      material(0xaaa69d),
-      x, 0.09, -14
+      material(0xaaa69d), x, 0.09, -14
     );
   }
 
-  // Road markings
   for (let x = -75; x < 75; x += 12) {
-    box(
-      city, 5, 0.02, 0.2,
-      m.yellow, x, 0.04, -36
-    );
+    box(city, 5, 0.02, 0.2, m.yellow, x, 0.04, -36);
   }
 
-  // Buildings
   for (let i = -5; i <= 5; i++) {
-
-    const height = 20 + Math.abs(i * 7) % 18;
+    const h = 20 + Math.abs(i * 7) % 18;
     const x = i * 19;
     const z = -78;
-    const width = 17;
+    const w = 17;
 
     const group = new THREE.Group();
-
     group.position.set(x, 0, z);
 
     box(
-      group, width, height, 15,
+      group, w, h, 15,
       material(i % 2 ? 0x8b9eaa : 0xb7a89c),
-      0, height / 2, 0
+      0, h / 2, 0
     );
 
-    // Windows
-    for (let y = 3; y < height - 2; y += 4) {
-
-      for (
-        let wx = -width / 2 + 2;
-        wx < width / 2 - 1;
-        wx += 3.5
-      ) {
-
-        box(
-          group, 1.7, 2.2, 0.08,
-          m.glass,
-          wx, y, 7.56
-        );
-
-        box(
-          group, 1.9, 0.12, 0.16,
-          m.white,
-          wx, y - 1.15, 7.65
-        );
-
+    for (let y = 3; y < h - 2; y += 4) {
+      for (let wx = -w / 2 + 2; wx < w / 2 - 1; wx += 3.5) {
+        box(group, 1.7, 2.2, 0.08, m.glass, wx, y, 7.56);
+        box(group, 1.9, 0.12, 0.16, m.white, wx, y - 1.15, 7.65);
       }
     }
 
     city.add(group);
   }
 
-  // Trees
   for (let i = -6; i <= 6; i++) {
-
     if (Math.abs(i) < 2) continue;
 
     const x = i * 11;
     const z = -7;
 
-    cylinder(
-      city, 0.25, 0.35, 3,
-      m.trunk, x, 1.5, z
-    );
+    cylinder(city, 0.25, 0.35, 3, m.trunk, x, 1.5, z);
 
     const crown = new THREE.Mesh(
       new THREE.IcosahedronGeometry(2.1, 1),
@@ -259,20 +176,16 @@ function createCity() {
 
     crown.position.set(x, 4.3, z);
     crown.castShadow = true;
-
     city.add(crown);
   }
 }
 
-// --------------------------------------
 // GAME STATE
-// --------------------------------------
 
 let floor = 1;
 let score = 0;
 let wind = 0;
 let power = 60;
-
 let height = 12;
 let state = "idle";
 let sequenceTime = 0;
@@ -282,167 +195,94 @@ let pitch = -0.12;
 let locked = false;
 
 let projectile = null;
+let flightTime = 0;
 
 const velocity = new THREE.Vector3();
 const previous = new THREE.Vector3();
-
-let flightTime = 0;
-
 const trashPosition = new THREE.Vector3();
 
-// --------------------------------------
-// BALCONY POSITIONING
-// --------------------------------------
+// CAMERA POSITION
+// The front railing is at z = -4.02.
+// EDGE_Z is beyond the railing, giving a
+// clear downward view of the sidewalk.
 
-// Camera eye height above balcony floor.
 const EYE_ABOVE_FLOOR = 1.65;
-
-// Balcony front is at z = -4.
-// Camera ends almost at the railing.
-
 const START_Z = 1.45;
-const EDGE_Z = -3.82;
+const EDGE_Z = -4.65;
 
-// --------------------------------------
 // BALCONY
-// --------------------------------------
 
 function createBalcony() {
-
   balcony.clear();
 
   const h = height;
 
-  // Apartment building behind player
-  box(
-    balcony, 30, 120, 10,
-    m.brick,
-    0, h - 10, 9
-  );
+  box(balcony, 30, 120, 10, m.brick, 0, h - 10, 9);
 
-  // Balcony floor
   box(
-    balcony, 8, 0.3, 6,
-    m.cement,
+    balcony, 8, 0.3, 6, m.cement,
     0, h - EYE_ABOVE_FLOOR - 0.16, -1
   );
 
-  // Front railing
-  box(
-    balcony, 8, 0.12, 0.13,
-    m.rail,
-    0, h - 0.73, -4.02
-  );
-
-  box(
-    balcony, 8, 0.08, 0.1,
-    m.rail,
-    0, h - 1.5, -4.02
-  );
+  box(balcony, 8, 0.12, 0.13, m.rail, 0, h - 0.73, -4.02);
+  box(balcony, 8, 0.08, 0.1, m.rail, 0, h - 1.5, -4.02);
 
   for (let x = -3.9; x <= 3.9; x += 0.5) {
     box(
       balcony, 0.065, 0.82, 0.065,
-      m.rail,
-      x, h - 1.13, -4.02
+      m.rail, x, h - 1.13, -4.02
     );
   }
 
-  // Side railings
   for (const side of [-1, 1]) {
-
     const x = side * 3.95;
 
-    box(
-      balcony, 0.12, 0.12, 6,
-      m.rail,
-      x, h - 0.73, -1
-    );
+    box(balcony, 0.12, 0.12, 6, m.rail, x, h - 0.73, -1);
 
     for (let z = -3.8; z < 2; z += 0.6) {
       box(
         balcony, 0.07, 0.82, 0.07,
-        m.rail,
-        x, h - 1.13, z
+        m.rail, x, h - 1.13, z
       );
     }
   }
 
-  // Door behind player
-  box(
-    balcony, 2.7, 4.4, 0.25,
-    m.white,
-    0, h + 0.2, 3.8
-  );
-
-  box(
-    balcony, 2.2, 3.8, 0.08,
-    m.glass,
-    0, h + 0.15, 3.61
-  );
-
-  box(
-    balcony, 0.09, 3.8, 0.12,
-    m.white,
-    0, h + 0.15, 3.54
-  );
+  box(balcony, 2.7, 4.4, 0.25, m.white, 0, h + 0.2, 3.8);
+  box(balcony, 2.2, 3.8, 0.08, m.glass, 0, h + 0.15, 3.61);
+  box(balcony, 0.09, 3.8, 0.12, m.white, 0, h + 0.15, 3.54);
 }
 
-// --------------------------------------
 // TRASH CAN
-// --------------------------------------
 
 function createTrash() {
-
   trash.clear();
   trash.position.copy(trashPosition);
 
-  // Body
-  cylinder(
-    trash, 0.64, 0.52, 1.28,
-    m.green,
-    0, 0.64, 0
-  );
+  cylinder(trash, 0.64, 0.52, 1.28, m.green, 0, 0.64, 0);
+  cylinder(trash, 0.56, 0.56, 0.025, m.dark, 0, 1.29, 0);
 
-  // Opening
-  cylinder(
-    trash, 0.56, 0.56, 0.025,
-    m.dark,
-    0, 1.29, 0
-  );
-
-  // Metal rim
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(
-      0.62, 0.07, 8, 36
-    ),
+    new THREE.TorusGeometry(0.62, 0.07, 8, 36),
     m.metal
   );
 
   rim.rotation.x = Math.PI / 2;
   rim.position.y = 1.3;
-
   trash.add(rim);
 
-  // Vertical ribs
   for (let i = 0; i < 12; i++) {
-
-    const angle = i * Math.PI / 6;
+    const a = i * Math.PI / 6;
 
     box(
-      trash, 0.035, 0.9, 0.035,
-      m.dark,
-      Math.cos(angle) * 0.58,
+      trash, 0.035, 0.9, 0.035, m.dark,
+      Math.cos(a) * 0.58,
       0.62,
-      Math.sin(angle) * 0.58
+      Math.sin(a) * 0.58
     );
   }
 
-  // Target indicator
   const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(
-      0.86, 0.035, 8, 40
-    ),
+    new THREE.TorusGeometry(0.86, 0.035, 8, 40),
     new THREE.MeshBasicMaterial({
       color: 0xffdc57,
       transparent: true,
@@ -457,9 +297,7 @@ function createTrash() {
   trash.add(ring);
 }
 
-// --------------------------------------
-// FIRST-PERSON HANDS AND GUM
-// --------------------------------------
+// FIRST PERSON GUM AND HANDS
 
 let pack;
 let flap;
@@ -467,101 +305,54 @@ let stick;
 let rightHand;
 
 function createHands() {
-
   hands.clear();
 
   const capsule = new THREE.CapsuleGeometry(
     0.12, 0.36, 5, 10
   );
 
-  // Left hand
-  const left = new THREE.Mesh(
-    capsule, m.skin
-  );
-
+  const left = new THREE.Mesh(capsule, m.skin);
   left.position.set(-0.48, -0.55, -0.75);
   left.rotation.z = -0.45;
-
   hands.add(left);
 
-  // Right hand
-  rightHand = new THREE.Mesh(
-    capsule, m.skin
-  );
-
+  rightHand = new THREE.Mesh(capsule, m.skin);
   rightHand.position.set(0.48, -0.55, -0.75);
   rightHand.rotation.z = 0.45;
-
   hands.add(rightHand);
 
-  // Gum package
   pack = new THREE.Group();
 
-  box(
-    pack, 0.68, 0.3, 0.14,
-    m.white, 0, 0, 0
-  );
+  box(pack, 0.68, 0.3, 0.14, m.white, 0, 0, 0);
+  box(pack, 0.68, 0.045, 0.15, m.green, 0, 0.11, 0);
+  box(pack, 0.68, 0.045, 0.15, m.green, 0, -0.11, 0);
 
-  // Wrapper stripes
-  box(
-    pack, 0.68, 0.045, 0.15,
-    m.green, 0, 0.11, 0
-  );
-
-  box(
-    pack, 0.68, 0.045, 0.15,
-    m.green, 0, -0.11, 0
-  );
-
-  // Opening flap
   flap = new THREE.Group();
-
-  box(
-    flap, 0.68, 0.17, 0.025,
-    m.white, 0, 0.085, 0
-  );
-
+  box(flap, 0.68, 0.17, 0.025, m.white, 0, 0.085, 0);
   flap.position.set(0, 0.15, 0.01);
   pack.add(flap);
 
-  // Gum sticks
   for (let i = 0; i < 5; i++) {
-
     box(
-      pack, 0.1, 0.23, 0.025,
-      m.white,
-      -0.23 + i * 0.115,
-      0.01,
-      -0.09
+      pack, 0.1, 0.23, 0.025, m.white,
+      -0.23 + i * 0.115, 0.01, -0.09
     );
   }
 
-  // Stick pulled from package
   stick = new THREE.Group();
-
-  box(
-    stick, 0.1, 0.24, 0.035,
-    m.white, 0, 0, 0
-  );
-
+  box(stick, 0.1, 0.24, 0.035, m.white, 0, 0, 0);
   stick.position.set(0.12, 0.02, -0.12);
-
   pack.add(stick);
 
   pack.position.set(0, -0.35, -0.7);
-
   hands.add(pack);
 }
 
-// --------------------------------------
 // HUD
-// --------------------------------------
 
 function hud() {
-
   $("floor").textContent = floor;
   $("score").textContent = score;
-
   $("wind").textContent =
     (wind >= 0 ? "+" : "") + wind.toFixed(1);
 
@@ -573,9 +364,7 @@ function msg(text) {
   $("message").textContent = text;
 }
 
-// --------------------------------------
 // CAMERA
-// --------------------------------------
 
 function cameraAngles() {
   camera.rotation.y = yaw;
@@ -583,53 +372,36 @@ function cameraAngles() {
 }
 
 function lookAtTrash() {
-
-  const direction = trashPosition
-    .clone()
+  const direction = trashPosition.clone()
     .add(new THREE.Vector3(0, 1.3, 0))
     .sub(camera.position)
     .normalize();
 
-  yaw = Math.atan2(
-    -direction.x,
-    -direction.z
-  );
-
+  yaw = Math.atan2(-direction.x, -direction.z);
   pitch = Math.asin(direction.y);
 
   cameraAngles();
 }
 
-// --------------------------------------
-// RESET LEVEL
-// --------------------------------------
+// LEVEL RESET
 
 function resetLevel() {
-
   height = 12 + (floor - 1) * 6;
-
   power = 60;
 
-  wind =
-    (Math.random() - 0.5) *
+  wind = (Math.random() - 0.5) *
     Math.min(floor * 0.5, 3);
 
-  // Trash can directly in front
   trashPosition.set(
     (Math.random() - 0.5) * 3,
     0,
     -11.5 - Math.random() * 2.5
   );
 
-  camera.position.set(
-    0,
-    height,
-    START_Z
-  );
+  camera.position.set(0, height, START_Z);
 
   yaw = 0;
   pitch = -0.12;
-
   cameraAngles();
 
   if (projectile) {
@@ -644,12 +416,8 @@ function resetLevel() {
 
   hands.visible = true;
   pack.visible = true;
-
   flap.rotation.x = 0;
-
-  stick.position.set(
-    0.12, 0.02, -0.12
-  );
+  stick.position.set(0.12, 0.02, -0.12);
 
   $("powerHud").style.opacity = "0";
   $("crosshair").style.opacity = "0";
@@ -658,76 +426,53 @@ function resetLevel() {
   sequenceTime = 0;
 
   msg("OPENING THE GUM...");
-
   hud();
 }
 
-// --------------------------------------
 // START GAME
-// --------------------------------------
 
 function startGame() {
+  if (state !== "idle") return;
 
   $("startScreen").classList.add("hidden");
-
   resetLevel();
 }
 
-$("startButton").addEventListener(
-  "click",
-  startGame
-);
+$("startButton").addEventListener("click", startGame);
 
-// --------------------------------------
-// SMOOTH ANIMATION HELPER
-// --------------------------------------
+// ANIMATION HELPER
 
 function smooth(t) {
-
-  t = THREE.MathUtils.clamp(
-    t, 0, 1
-  );
-
+  t = THREE.MathUtils.clamp(t, 0, 1);
   return t * t * (3 - 2 * t);
 }
 
-// --------------------------------------
-// AUTOMATIC INTRO SEQUENCE
-// --------------------------------------
+// AUTOMATIC INTRO
+// No clicking, no manual walking.
 
 function updateIntro(dt) {
-
   if (state !== "intro") return;
 
   sequenceTime += dt;
-
   const t = sequenceTime;
 
-  // 0-1.4: Open pack
-  // 1.4-2.7: Pull out gum
-  // 2.7-4.3: Chew
-  // 4.3-7.8: Walk to railing
-  // 7.8-8.7: Look down
+  // OPEN PACK
 
   if (t < 1.4) {
-
     msg("OPENING THE GUM...");
 
     flap.rotation.x =
       -2.3 * smooth((t - 0.25) / 1.05);
 
-    pack.rotation.z =
-      Math.sin(t * 2) * 0.05;
-
+    pack.rotation.z = Math.sin(t * 2) * 0.05;
   }
 
-  else if (t < 2.7) {
+  // REMOVE STICK
 
+  else if (t < 2.7) {
     msg("TAKING OUT A STICK...");
 
-    const p = smooth(
-      (t - 1.4) / 1.3
-    );
+    const p = smooth((t - 1.4) / 1.3);
 
     stick.position.set(
       0.12 + p * 0.2,
@@ -735,89 +480,65 @@ function updateIntro(dt) {
       -0.12
     );
 
-    rightHand.position.y =
-      -0.55 + p * 0.23;
-
+    rightHand.position.y = -0.55 + p * 0.23;
   }
+
+  // AUTOMATIC CHEW
 
   else if (t < 4.3) {
-
     msg("CHEWING...");
 
-    const p =
-      (t - 2.7) / 1.6;
+    const p = (t - 2.7) / 1.6;
 
     rightHand.position.y =
-      -0.55 +
-      Math.sin(p * Math.PI * 5) * 0.09;
+      -0.55 + Math.sin(p * Math.PI * 5) * 0.09;
 
-    pack.position.y =
-      -0.35 - p * 0.3;
-
+    pack.position.y = -0.35 - p * 0.3;
     pack.visible = p < 0.65;
-
   }
 
-  else if (t < 7.8) {
+  // AUTOMATIC WALK TO EDGE
 
+  else if (t < 7.8) {
     msg("WALKING TO THE EDGE...");
 
     hands.visible = false;
 
-    const p = smooth(
-      (t - 4.3) / 3.5
+    const p = smooth((t - 4.3) / 3.5);
+
+    camera.position.z = THREE.MathUtils.lerp(
+      START_Z,
+      EDGE_Z,
+      p
     );
 
-    camera.position.z =
-      THREE.MathUtils.lerp(
-        START_Z,
-        EDGE_Z,
-        p
-      );
-
-    // Small walking head movement
     camera.position.y =
       height +
       Math.sin(t * 12) * 0.025 * (1 - p);
 
-    pitch = THREE.MathUtils.lerp(
-      -0.12,
-      -0.4,
-      p
-    );
-
+    pitch = THREE.MathUtils.lerp(-0.12, -0.4, p);
     cameraAngles();
-
   }
 
-  else if (t < 8.7) {
+  // LOOK DOWN AT TRASH CAN
 
+  else if (t < 8.7) {
     msg("LOOKING FOR THE TRASH CAN...");
 
-    camera.position.set(
-      0,
-      height,
-      EDGE_Z
-    );
+    camera.position.set(0, height, EDGE_Z);
 
-    const direction = trashPosition
-      .clone()
+    const direction = trashPosition.clone()
       .add(new THREE.Vector3(0, 1.3, 0))
       .sub(camera.position)
       .normalize();
 
-    const targetPitch =
-      Math.asin(direction.y);
-
-    const targetYaw =
-      Math.atan2(
-        -direction.x,
-        -direction.z
-      );
-
-    const p = smooth(
-      (t - 7.8) / 0.9
+    const targetPitch = Math.asin(direction.y);
+    const targetYaw = Math.atan2(
+      -direction.x,
+      -direction.z
     );
+
+    const p = smooth((t - 7.8) / 0.9);
 
     pitch = THREE.MathUtils.lerp(
       -0.4,
@@ -832,248 +553,164 @@ function updateIntro(dt) {
     );
 
     cameraAngles();
-
   }
 
-  else {
+  // PLAYER TAKES CONTROL
 
+  else {
     state = "aiming";
 
+    camera.position.set(0, height, EDGE_Z);
     lookAtTrash();
 
     $("powerHud").style.opacity = "1";
     $("crosshair").style.opacity = "1";
 
-    msg("AIM AT THE TRASH CAN · CLICK TO SPIT");
-
+    msg("AIM AT THE TRASH CAN · CLICK ONCE TO ENABLE MOUSE");
   }
 }
 
-// --------------------------------------
-// MOUSE CONTROLS
-// --------------------------------------
+// MOUSE AIMING
 
 function lockMouse() {
+  if (document.pointerLockElement === renderer.domElement) {
+    return;
+  }
 
-  if (
-    document.pointerLockElement ===
-    renderer.domElement
-  ) return;
-
-  const promise =
-    renderer.domElement.requestPointerLock?.();
+  const promise = renderer.domElement.requestPointerLock?.();
 
   if (promise?.catch) {
     promise.catch(() => {});
   }
 }
 
-document.addEventListener(
-  "pointerlockchange",
-  () => {
+document.addEventListener("pointerlockchange", () => {
+  locked = document.pointerLockElement === renderer.domElement;
+});
 
-    locked =
-      document.pointerLockElement ===
-      renderer.domElement;
+document.addEventListener("mousemove", event => {
+  if (!locked || state !== "aiming") return;
 
+  yaw = THREE.MathUtils.clamp(
+    yaw - event.movementX * 0.0022,
+    -1.3,
+    1.3
+  );
+
+  pitch = THREE.MathUtils.clamp(
+    pitch - event.movementY * 0.0022,
+    -1.52,
+    0.4
+  );
+
+  cameraAngles();
+});
+
+// SPIT POWER
+
+document.addEventListener("wheel", event => {
+  if (state !== "aiming") return;
+
+  power = THREE.MathUtils.clamp(
+    power + (event.deltaY > 0 ? -3 : 3),
+    10,
+    100
+  );
+
+  hud();
+}, { passive: true });
+
+// KEYBOARD AIMING
+
+document.addEventListener("keydown", event => {
+  if (state !== "aiming") return;
+
+  if (event.code === "Space") {
+    event.preventDefault();
+    spit();
   }
-);
 
-document.addEventListener(
-  "mousemove",
-  event => {
-
-    if (!locked || state !== "aiming") return;
-
-    yaw = THREE.MathUtils.clamp(
-      yaw - event.movementX * 0.0022,
-      -1.3,
-      1.3
-    );
-
-    pitch = THREE.MathUtils.clamp(
-      pitch - event.movementY * 0.0022,
-      -1.52,
-      0.4
-    );
-
-    cameraAngles();
-
+  if (event.code === "KeyW") {
+    power = Math.min(100, power + 3);
   }
-);
 
-// --------------------------------------
-// POWER CONTROLS
-// --------------------------------------
-
-document.addEventListener(
-  "wheel",
-  event => {
-
-    if (state !== "aiming") return;
-
-    power = THREE.MathUtils.clamp(
-      power + (event.deltaY > 0 ? -3 : 3),
-      10,
-      100
-    );
-
-    hud();
-
-  },
-  { passive: true }
-);
-
-// --------------------------------------
-// KEYBOARD CONTROLS
-// --------------------------------------
-
-document.addEventListener(
-  "keydown",
-  event => {
-
-    if (state !== "aiming") return;
-
-    if (event.code === "Space") {
-      event.preventDefault();
-      spit();
-    }
-
-    if (event.code === "KeyW") {
-      power = Math.min(100, power + 3);
-    }
-
-    if (event.code === "KeyS") {
-      power = Math.max(10, power - 3);
-    }
-
-    if (event.code === "ArrowLeft") {
-      yaw += 0.035;
-    }
-
-    if (event.code === "ArrowRight") {
-      yaw -= 0.035;
-    }
-
-    if (event.code === "ArrowUp") {
-      pitch += 0.035;
-    }
-
-    if (event.code === "ArrowDown") {
-      pitch -= 0.035;
-    }
-
-    pitch = THREE.MathUtils.clamp(
-      pitch, -1.52, 0.4
-    );
-
-    cameraAngles();
-    hud();
-
+  if (event.code === "KeyS") {
+    power = Math.max(10, power - 3);
   }
-);
 
-// --------------------------------------
-// CLICK TO AIM OR SPIT
-// --------------------------------------
+  if (event.code === "ArrowLeft") yaw += 0.035;
+  if (event.code === "ArrowRight") yaw -= 0.035;
+  if (event.code === "ArrowUp") pitch += 0.035;
+  if (event.code === "ArrowDown") pitch -= 0.035;
 
-renderer.domElement.addEventListener(
-  "mousedown",
-  event => {
+  pitch = THREE.MathUtils.clamp(pitch, -1.52, 0.4);
 
-    if (
-      event.button !== 0 ||
-      state !== "aiming"
-    ) return;
+  cameraAngles();
+  hud();
+});
 
-    if (!locked) {
-      lockMouse();
-    } else {
-      spit();
-    }
+// CLICK TO AIM / SPIT
 
+renderer.domElement.addEventListener("mousedown", event => {
+  if (event.button !== 0 || state !== "aiming") return;
+
+  if (!locked) {
+    lockMouse();
+    msg("AIM WITH MOUSE · CLICK TO SPIT");
+  } else {
+    spit();
   }
-);
+});
 
-// --------------------------------------
-// SPIT GUM
-// --------------------------------------
+// LAUNCH GUM
 
 function spit() {
-
   if (state !== "aiming") return;
 
   state = "flying";
   flightTime = 0;
 
   const direction = new THREE.Vector3();
-
   camera.getWorldDirection(direction);
 
-  const speed =
-    5 + (power / 100) * 24;
+  const speed = 5 + (power / 100) * 24;
 
-  velocity
-    .copy(direction)
-    .multiplyScalar(speed);
+  velocity.copy(direction).multiplyScalar(speed);
 
   projectile = new THREE.Mesh(
-    new THREE.SphereGeometry(
-      0.12, 16, 12
-    ),
+    new THREE.SphereGeometry(0.12, 16, 12),
     m.gum
   );
 
-  projectile.scale.set(
-    1.2, 0.7, 0.9
-  );
+  projectile.scale.set(1.2, 0.7, 0.9);
 
-  projectile.position.copy(camera.position);
-
-  projectile.position.addScaledVector(
-    direction,
-    0.7
-  );
+  projectile.position
+    .copy(camera.position)
+    .addScaledVector(direction, 0.7);
 
   projectile.position.y -= 0.15;
-
   projectile.castShadow = true;
 
   scene.add(projectile);
-
   msg("WATCH IT FLY!");
 }
 
-// --------------------------------------
-// GUM PHYSICS
-// --------------------------------------
+// PROJECTILE PHYSICS
 
 function updateProjectile(dt) {
-
-  if (
-    state !== "flying" ||
-    !projectile
-  ) return;
+  if (state !== "flying" || !projectile) return;
 
   flightTime += dt;
-
   previous.copy(projectile.position);
 
-  // Gravity
   velocity.y -= 9.81 * dt;
-
-  // Wind
   velocity.x += wind * dt;
 
-  projectile.position.addScaledVector(
-    velocity,
-    dt
-  );
+  projectile.position.addScaledVector(velocity, dt);
 
   projectile.rotation.x += dt * 7;
   projectile.rotation.z += dt * 5;
 
-  // Check trash can opening
   const top = 1.29;
 
   if (
@@ -1081,7 +718,6 @@ function updateProjectile(dt) {
     projectile.position.y <= top &&
     velocity.y < 0
   ) {
-
     const fraction =
       (previous.y - top) /
       (previous.y - projectile.position.y);
@@ -1107,149 +743,93 @@ function updateProjectile(dt) {
       finish(true);
       return;
     }
-
   }
 
-  if (
-    projectile.position.y <= 0 ||
-    flightTime > 12
-  ) {
+  if (projectile.position.y <= 0 || flightTime > 12) {
     finish(false);
   }
 }
 
-// --------------------------------------
-// SHOT RESULTS
-// --------------------------------------
+// RESULTS
 
 function finish(hit) {
-
   state = hit ? "success" : "miss";
 
   if (document.pointerLockElement) {
     document.exitPointerLock();
   }
 
-  if (hit) {
-    score += floor * 100;
-  }
+  if (hit) score += floor * 100;
 
   hud();
 
   $("resultTitle").textContent =
     hit ? "DIRECT HIT!" : "YOU MISSED!";
 
-  $("resultDescription").textContent =
-    hit
-      ? `You scored ${floor * 100} points! Ready for a higher balcony?`
-      : "Adjust your aim or power and try again.";
+  $("resultDescription").textContent = hit
+    ? `You scored ${floor * 100} points! Ready for a higher balcony?`
+    : "Adjust your aim or power and try again.";
 
   $("resultButton").textContent =
     hit ? "NEXT FLOOR" : "TRY AGAIN";
 
   $("resultScreen").classList.remove("hidden");
-
 }
 
-// --------------------------------------
-// NEXT FLOOR / RETRY
-// --------------------------------------
+// CONTINUE
 
-$("resultButton").addEventListener(
-  "click",
-  () => {
+$("resultButton").addEventListener("click", () => {
+  $("resultScreen").classList.add("hidden");
 
-    $("resultScreen").classList.add("hidden");
-
-    if (state === "success") {
-
-      floor++;
-      resetLevel();
-
+  if (state === "success") {
+    floor++;
+    resetLevel();
+  } else if (state === "miss") {
+    if (projectile) {
+      scene.remove(projectile);
+      projectile.geometry.dispose();
+      projectile = null;
     }
 
-    else if (state === "miss") {
-
-      if (projectile) {
-        scene.remove(projectile);
-        projectile.geometry.dispose();
-        projectile = null;
-      }
-
-      state = "aiming";
-
-      msg("TRY AGAIN · CLICK TO AIM");
-
-    }
-
+    state = "aiming";
+    msg("TRY AGAIN · CLICK TO AIM");
   }
-);
+});
 
-// --------------------------------------
-// ANIMATION LOOP
-// --------------------------------------
+// MAIN LOOP
 
 const clock = new THREE.Clock();
 
 function animate() {
-
   requestAnimationFrame(animate);
 
-  const dt = Math.min(
-    clock.getDelta(),
-    0.033
-  );
+  const dt = Math.min(clock.getDelta(), 0.033);
 
   updateIntro(dt);
   updateProjectile(dt);
 
-  // Floating target indicator
-  const ring = trash.getObjectByName(
-    "targetRing"
-  );
+  const ring = trash.getObjectByName("targetRing");
 
   if (ring) {
-
     ring.position.y =
-      1.62 +
-      Math.sin(clock.elapsedTime * 2) * 0.08;
-
+      1.62 + Math.sin(clock.elapsedTime * 2) * 0.08;
   }
 
   renderer.render(scene, camera);
-
 }
 
-// --------------------------------------
-// WINDOW RESIZING
-// --------------------------------------
+// RESIZE
 
-window.addEventListener(
-  "resize",
-  () => {
+window.addEventListener("resize", () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
 
-    camera.aspect =
-      innerWidth / innerHeight;
-
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(
-      innerWidth,
-      innerHeight
-    );
-
-  }
-);
-
-// --------------------------------------
 // INITIALIZE
-// --------------------------------------
 
 createCity();
 resetLevel();
-
 state = "idle";
-
 msg("PRESS START GAME");
-
 animate();

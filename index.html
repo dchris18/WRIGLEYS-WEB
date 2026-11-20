@@ -3,88 +3,83 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gum Spit 3D</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="game"></div>
 
-<div id="game"></div>
+  <div id="hud">
+    <div class="top">
+      <div class="logo">GUM<span>SPIT!</span></div>
+      <div class="stats">
+        <div>FLOOR <b id="floor">1</b></div>
+        <div>SCORE <b id="score">0</b></div>
+        <div>WIND <b id="wind">0</b></div>
+      </div>
+    </div>
 
-<div id="hud">
-  <div class="top">
-    <div class="logo">GUM<span>SPIT!</span></div>
+    <div id="message">READY?</div>
+    <div id="crosshair">+</div>
 
-    <div class="stats">
-      <div>FLOOR <b id="floor">1</b></div>
-      <div>SCORE <b id="score">0</b></div>
-      <div>WIND <b id="wind">0</b></div>
+    <div id="powerHud">
+      <div>
+        SPIT POWER
+        <b id="powerText">60%</b>
+      </div>
+      <div class="meter">
+        <div id="powerFill"></div>
+      </div>
+    </div>
+
+    <div id="controls">
+      MOUSE TO AIM · SCROLL TO ADJUST POWER · CLICK OR SPACE TO SPIT
     </div>
   </div>
 
-  <div id="message">READY?</div>
-  <div id="crosshair">+</div>
-
-  <div id="powerHud">
-    <div>
-      SPIT POWER
-      <b id="powerText">60%</b>
+  <div id="startScreen" class="screen">
+    <div class="panel">
+      <div class="tag">THE BALCONY CHALLENGE</div>
+      <h1>GUM SPIT!</h1>
+      <p>
+        Open a pack, chew, and take your shot.
+        The entire intro plays automatically.
+      </p>
+      <button id="startButton" disabled>LOADING...</button>
     </div>
-    <div class="meter">
-      <div id="powerFill"></div>
+  </div>
+
+  <div id="resultScreen" class="screen hidden">
+    <div class="panel">
+      <h1 id="resultTitle"></h1>
+      <p id="resultDescription"></p>
+      <button id="resultButton">CONTINUE</button>
     </div>
   </div>
 
-  <div id="controls">
-    MOUSE TO AIM · SCROLL TO ADJUST POWER · CLICK OR SPACE TO SPIT
+  <div id="errorScreen" class="screen hidden">
+    <div class="panel">
+      <h2>COULDN'T LOAD THE GAME</h2>
+      <p id="errorText"></p>
+    </div>
   </div>
-</div>
 
-<div id="startScreen" class="screen">
-  <div class="panel">
-    <div class="tag">THE BALCONY CHALLENGE</div>
-    <h1>GUM SPIT!</h1>
-    <p>
-      Open a pack, chew, and take your shot.
-      The intro plays automatically.
-    </p>
-    <button id="startButton" disabled>LOADING...</button>
-  </div>
-</div>
+  <script type="module">
+    const button = document.getElementById("startButton");
 
-<div id="resultScreen" class="screen hidden">
-  <div class="panel">
-    <h1 id="resultTitle"></h1>
-    <p id="resultDescription"></p>
-    <button id="resultButton">CONTINUE</button>
-  </div>
-</div>
-
-<div id="errorScreen" class="screen hidden">
-  <div class="panel">
-    <h2>COULDN'T LOAD THE GAME</h2>
-    <p id="errorText"></p>
-  </div>
-</div>
-
-<script type="module">
-  const button = document.getElementById("startButton");
-
-  import("./script.js")
-    .then(() => {
-      button.disabled = false;
-      button.textContent = "START GAME";
-    })
-    .catch(error => {
-      document.getElementById("errorText").textContent =
-        error.message;
-
-      document.getElementById("errorScreen")
-        .classList.remove("hidden");
-
-      console.error(error);
-    });
-</script>
-
+    import("./script.js?v=4")
+      .then(() => {
+        button.disabled = false;
+        button.textContent = "START GAME";
+      })
+      .catch(error => {
+        document.getElementById("errorText").textContent =
+          error.message;
+        document.getElementById("errorScreen")
+          .classList.remove("hidden");
+        console.error(error);
+      });
+  </script>
 </body>
 </html>
