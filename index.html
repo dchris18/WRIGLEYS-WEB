@@ -2,86 +2,24 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Gum Spit — Spearmint City</title>
-<link rel="stylesheet" href="./style.css?v=19">
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
-  }
-}
-</script>
+<link rel="stylesheet" href="./style.css?v=20">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}</script>
 </head>
 <body>
 <main id="game">
   <div id="hud" class="hidden">
-    <div class="stats">
-      <div class="stat">FLOOR <b id="floor">1</b></div>
-      <div class="stat">SCORE <b id="score">0</b></div>
-      <div class="stat">WIND <b id="wind">0.0</b></div>
-    </div>
+    <div class="stats"><div class="stat">FLOOR <b id="floor">1</b></div><div class="stat">SCORE <b id="score">0</b></div><div class="stat">WIND <b id="wind">0.0</b></div></div>
     <div id="shots" aria-label="Shots remaining"></div>
     <div id="message">GET READY</div>
     <div id="crosshair" class="hidden">+</div>
-    <div id="powerHud" class="hidden">
-      <div class="powerHeading">
-        SPIT POWER <b id="powerText">60%</b>
-      </div>
-      <div class="powerTrack">
-        <div id="powerFill"></div>
-      </div>
-      <div class="hint">
-        MOUSE TO AIM · SCROLL / W S FOR POWER · CLICK OR SPACE TO SPIT
-      </div>
-    </div>
+    <div id="powerHud" class="hidden"><div class="powerHeading">SPIT POWER <b id="powerText">60%</b></div><div class="powerTrack"><div id="powerFill"></div></div><div class="hint">MOUSE TO AIM · SCROLL / W S FOR POWER · CLICK OR SPACE TO SPIT</div></div>
     <div id="popup"></div>
   </div>
-
-  <div id="startScreen" class="overlay">
-    <div class="panel">
-      <div class="eyebrow">A VERY SERIOUS BALCONY SPORT</div>
-      <h1>GUM<br><em>SPIT!</em></h1>
-      <p>Three shots. One tiny trash can. A whole city below.</p>
-      <button id="startButton" disabled>LOADING CITY...</button>
-      <div class="small">Aim carefully. Pedestrians cost you 50 points.</div>
-    </div>
-  </div>
-
-  <div id="resultScreen" class="overlay hidden">
-    <div class="panel">
-      <div class="eyebrow" id="resultEyebrow">NICE SHOT</div>
-      <h2 id="resultTitle">DIRECT HIT!</h2>
-      <p id="resultDescription"></p>
-      <button id="resultButton">NEXT FLOOR</button>
-    </div>
-  </div>
-
-  <div id="errorScreen" class="overlay hidden">
-    <div class="panel">
-      <h2>GAME COULDN'T LOAD</h2>
-      <p id="errorText"></p>
-      <div class="small">
-        Use GitHub Pages or a local server, not file://
-      </div>
-    </div>
-  </div>
+  <div id="startScreen" class="overlay"><div class="panel"><div class="eyebrow">A VERY SERIOUS BALCONY SPORT</div><h1>GUM<br><em>SPIT!</em></h1><p>Three shots. One tiny trash can. A whole city below.</p><button id="startButton" disabled>LOADING CITY...</button><div class="small">Aim carefully. Pedestrians cost you 50 points.</div></div></div>
+  <div id="resultScreen" class="overlay hidden"><div class="panel"><div class="eyebrow" id="resultEyebrow">NICE SHOT</div><h2 id="resultTitle">DIRECT HIT!</h2><p id="resultDescription"></p><button id="resultButton">NEXT FLOOR</button></div></div>
+  <div id="errorScreen" class="overlay hidden"><div class="panel"><h2>GAME COULDN'T LOAD</h2><p id="errorText"></p><div class="small">Use GitHub Pages or a local server, not file://</div></div></div>
 </main>
-
-<script type="module">
-import('./script.js?v=19')
-  .then(() => {
-    const b = document.getElementById('startButton');
-    b.disabled = false;
-    b.textContent = 'START SPITTING';
-  })
-  .catch(e => {
-    document.getElementById('errorText').textContent = e.message;
-    document.getElementById('errorScreen').classList.remove('hidden');
-    console.error(e);
-  });
-</script>
-</body>
-</html>
+<script type="module">import('./script.js?v=20').then(()=>{const b=document.getElementById('startButton');b.disabled=false;b.textContent='START SPITTING';}).catch(e=>{document.getElementById('errorText').textContent=e.message;document.getElementById('errorScreen').classList.remove('hidden');console.error(e)});</script>
+</body></html>
