@@ -1,105 +1,91 @@
 
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Gum Spit — Miniature City</title>
-  <link rel="stylesheet" href="./style.css?v=12">
-
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
-    }
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gum Spit — Tiny City</title>
+<link rel="stylesheet" href="./style.css?v=17">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"
   }
-  </script>
+}
+</script>
 </head>
 <body>
-  <main id="game"></main>
-
+<main id="game">
   <div id="hud" class="hidden">
-    <header class="topbar">
-      <div class="wordmark">
-        GUM<span>SPIT</span>
-        <small>MINIATURE CITY</small>
-      </div>
-      <div class="stats">
-        <div>FLOOR<strong id="floor">1</strong></div>
-        <div>SCORE<strong id="score">0</strong></div>
-        <div>WIND<strong id="wind">0.0</strong></div>
-      </div>
-    </header>
-
-    <div id="message" class="message">GET READY</div>
-
-    <div id="crosshair" class="crosshair hidden">
-      <i></i><i></i>
+    <div class="stats">
+      <div class="stat">FLOOR <b id="floor">1</b></div>
+      <div class="stat">SCORE <b id="score">0</b></div>
+      <div class="stat">WIND <b id="wind">0.0</b></div>
     </div>
-
-    <div id="powerHud" class="power hidden">
-      <div class="power-label">
-        <span>SPIT POWER</span>
-        <strong id="powerText">60%</strong>
+    <div id="shots" aria-label="Shots remaining"></div>
+    <div id="message">GET READY</div>
+    <div id="crosshair" class="hidden">+</div>
+    <div id="powerHud" class="hidden">
+      <div class="powerHeading">
+        SPIT POWER <b id="powerText">60%</b>
       </div>
-      <div class="track">
-        <div id="powerFill" class="fill"></div>
+      <div class="powerTrack">
+        <div id="powerFill"></div>
       </div>
-      <div class="hint">SCROLL OR W / S TO ADJUST</div>
+      <div class="hint">
+        MOUSE TO AIM · SCROLL / W S FOR POWER · CLICK OR SPACE TO SPIT
+      </div>
     </div>
+    <div id="popup"></div>
+  </div>
 
-    <div class="controls">
-      MOUSE TO AIM · CLICK OR SPACE TO SPIT · ARROW KEYS FOR FINE AIM
+  <div id="startScreen" class="overlay">
+    <div class="panel">
+      <div class="eyebrow">A VERY SERIOUS BALCONY SPORT</div>
+      <h1>GUM<br><em>SPIT!</em></h1>
+      <p>Three shots. One tiny trash can. A whole city below.</p>
+      <button id="startButton" disabled>LOADING CITY...</button>
+      <div class="small">
+        Aim carefully. Pedestrians cost you 50 points.
+      </div>
     </div>
   </div>
 
-  <section id="startScreen" class="overlay">
-    <div class="panel">
-      <div class="eyebrow">A VERY SILLY BALCONY SPORT</div>
-      <h1>GUM<br><em>SPIT!</em></h1>
-      <p>Unwrap it. Chew it. Send it.</p>
-      <div class="pill">A WHOLE CITY. ONE TINY TRASH CAN.</div>
-      <button id="startButton" disabled>LOADING CITY...</button>
-      <small class="panel-note">
-        DESKTOP RECOMMENDED · NO WALKING REQUIRED
-      </small>
-    </div>
-  </section>
-
-  <section id="resultScreen" class="overlay hidden">
+  <div id="resultScreen" class="overlay hidden">
     <div class="panel">
       <div class="eyebrow" id="resultEyebrow">NICE SHOT</div>
       <h2 id="resultTitle">DIRECT HIT!</h2>
       <p id="resultDescription"></p>
       <button id="resultButton">NEXT FLOOR</button>
     </div>
-  </section>
+  </div>
 
-  <section id="errorScreen" class="overlay hidden">
+  <div id="errorScreen" class="overlay hidden">
     <div class="panel">
       <h2>GAME COULDN'T LOAD</h2>
       <p id="errorText"></p>
-      <small class="panel-note">
-        Open the game through GitHub Pages or a local web server.
-      </small>
+      <div class="small">
+        Use GitHub Pages or a local server, not file://
+      </div>
     </div>
-  </section>
+  </div>
+</main>
 
-  <script type="module">
-import("./script.js?v=13")
-      .then(() => {
-        const button = document.getElementById("startButton");
-        button.disabled = false;
-        button.textContent = "START SPITTING";
-      })
-      .catch(error => {
-        document.getElementById("errorText").textContent =
-          error.message || String(error);
-        document.getElementById("errorScreen")
-          .classList.remove("hidden");
-        console.error("Gum Spit loading error:", error);
-      });
-  </script>
+<script type="module">
+  import("./script.js?v=17")
+    .then(() => {
+      const button = document.getElementById("startButton");
+      button.disabled = false;
+      button.textContent = "START SPITTING";
+    })
+    .catch(error => {
+      document.getElementById("errorText").textContent =
+        error.message;
+      document.getElementById("errorScreen")
+        .classList.remove("hidden");
+      console.error(error);
+    });
+</script>
 </body>
 </html>
