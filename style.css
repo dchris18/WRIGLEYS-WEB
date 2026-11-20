@@ -2,170 +2,209 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&display=swap');
 
 :root {
-  --ink: #283b40;
-  --cream: #f6ead2;
-  --pink: #ee766e;
-  --yellow: #f4c75d;
-  --green: #70a58b;
+  --ink: #293c42;
+  --cream: #fff0d5;
+  --coral: #f28d76;
+  --yellow: #f8d478;
+  --mint: #a5d1ad;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 html, body {
   width: 100%;
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: #9bbdc3;
-  font-family: 'DM Sans', Arial, sans-serif;
+  font-family: "DM Sans", Arial, sans-serif;
+  background: #86b9b4;
 }
 
-#game { position: fixed; inset: 0; }
-#game canvas { display: block; width: 100%; height: 100%; }
-.hidden { display: none !important; }
+#game {
+  position: fixed;
+  inset: 0;
+}
+
+#game canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hidden {
+  display: none !important;
+}
 
 #hud {
   position: fixed;
   inset: 0;
-  pointer-events: none;
-  color: #fff;
   z-index: 3;
-  text-shadow: 0 2px 10px #243b4055;
+  pointer-events: none;
+  color: white;
 }
 
 .topbar {
   position: absolute;
+  top: 20px;
   left: 24px;
   right: 24px;
-  top: 20px;
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
+  justify-content: space-between;
   gap: 16px;
 }
 
 .wordmark {
-  font-size: 31px;
-  font-weight: 900;
-  letter-spacing: -2px;
-  color: #fff;
+  font-size: 32px;
   line-height: 1;
+  letter-spacing: -2px;
+  font-weight: 900;
+  text-shadow: 0 3px 12px #25383c88;
 }
-.wordmark span { color: var(--yellow); }
+
+.wordmark span {
+  color: var(--yellow);
+}
+
 .wordmark small {
   display: block;
-  font-size: 9px;
-  letter-spacing: 3px;
-  margin-top: 6px;
-  color: #f5eee1;
+  margin-top: 7px;
+  font-size: 10px;
+  letter-spacing: 2.5px;
 }
-.stats { display: flex; gap: 8px; }
+
+.stats {
+  display: flex;
+  gap: 8px;
+}
+
 .stats > div {
   min-width: 75px;
   padding: 9px 12px;
-  text-align: center;
-  border: 1px solid #ffffff35;
-  border-radius: 12px;
-  background: #263f45b8;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1.5px;
+  border: 1px solid #ffffff55;
+  border-radius: 13px;
+  background: #293e45c9;
   backdrop-filter: blur(8px);
+  text-align: center;
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-weight: 900;
 }
+
 .stats strong {
   display: block;
+  margin-top: 3px;
   font-size: 23px;
   letter-spacing: 0;
-  margin-top: 2px;
 }
+
 .message {
   position: absolute;
   top: 17%;
   left: 50%;
   transform: translateX(-50%);
-  background: #263f45c9;
-  padding: 10px 17px;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 1.4px;
+  max-width: 90vw;
+  padding: 11px 18px;
+  border-radius: 30px;
+  background: #293e45c9;
   text-align: center;
   white-space: nowrap;
-  max-width: 90vw;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
 }
+
 .crosshair {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 23px;
-  height: 23px;
+  width: 24px;
+  height: 24px;
   transform: translate(-50%, -50%);
 }
+
 .crosshair i {
   position: absolute;
-  background: #fff;
-  box-shadow: 0 1px 5px #27383b;
+  background: white;
+  box-shadow: 0 1px 5px #283a3d;
 }
+
 .crosshair i:first-child {
+  left: 11px;
   width: 2px;
-  height: 22px;
-  left: 10px;
+  height: 24px;
 }
+
 .crosshair i:last-child {
+  top: 11px;
+  width: 24px;
   height: 2px;
-  width: 22px;
-  top: 10px;
 }
+
 .power {
   position: absolute;
   bottom: 73px;
   left: 50%;
   transform: translateX(-50%);
-  width: min(350px, 85vw);
+  width: min(350px, 86vw);
   padding: 16px 18px;
-  background: #253e45d9;
-  border: 1px solid #ffffff44;
-  border-radius: 15px;
+  border: 1px solid #ffffff55;
+  border-radius: 16px;
+  background: #293e45dc;
   backdrop-filter: blur(8px);
 }
+
 .power-label {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
   font-weight: 900;
-  letter-spacing: 1.3px;
+  letter-spacing: 1px;
 }
+
 .track {
-  height: 12px;
-  border-radius: 30px;
-  overflow: hidden;
-  background: #14292d;
+  height: 13px;
   margin-top: 12px;
+  overflow: hidden;
+  border-radius: 30px;
+  background: #152b30;
 }
+
 .fill {
   height: 100%;
   width: 60%;
   border-radius: 30px;
-  background: linear-gradient(90deg, #74b79a, #f3d36b, #ee766e);
+  background: linear-gradient(
+    90deg,
+    #9bcea8,
+    #f7d478,
+    #f28d76
+  );
 }
+
 .hint {
+  margin-top: 9px;
   text-align: center;
   font-size: 9px;
-  letter-spacing: 1.2px;
-  opacity: .75;
-  margin-top: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  opacity: 0.8;
 }
+
 .controls {
   position: absolute;
-  bottom: 23px;
-  left: 0;
-  right: 0;
+  bottom: 24px;
+  left: 12px;
+  right: 12px;
   text-align: center;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 1.2px;
-  padding: 0 14px;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px #25383c;
 }
+
 .overlay {
   position: fixed;
   inset: 0;
@@ -173,97 +212,139 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #1e363c9e;
+  background: #263f45a8;
   backdrop-filter: blur(7px);
 }
+
 .panel {
-  position: relative;
   width: min(460px, 91vw);
-  background: var(--cream);
+  padding: 34px 30px 30px;
   border: 3px solid var(--ink);
-  box-shadow: 12px 12px 0 #283b40;
-  border-radius: 18px;
-  text-align: center;
+  border-radius: 20px;
+  background: var(--cream);
   color: var(--ink);
-  padding: 34px 32px 30px;
+  box-shadow: 12px 12px 0 var(--ink);
+  text-align: center;
   transform: rotate(-1deg);
 }
+
 .eyebrow {
   display: inline-block;
-  background: var(--yellow);
-  border: 2px solid var(--ink);
-  border-radius: 100px;
   padding: 8px 13px;
+  border: 2px solid var(--ink);
+  border-radius: 30px;
+  background: var(--yellow);
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 1.7px;
+  letter-spacing: 1.4px;
 }
+
 .panel h1 {
-  font-size: clamp(65px, 12vw, 105px);
-  letter-spacing: -8px;
-  line-height: .79;
   margin: 25px 0 22px;
+  font-size: clamp(65px, 12vw, 105px);
   font-weight: 900;
+  letter-spacing: -8px;
+  line-height: 0.8;
 }
+
 .panel h1 em {
-  color: var(--pink);
+  color: var(--coral);
   font-style: normal;
   text-shadow: 4px 4px 0 var(--ink);
 }
+
 .panel h2 {
-  font-size: clamp(35px, 7vw, 56px);
-  letter-spacing: -2px;
+  margin: 24px 0 18px;
+  font-size: clamp(35px, 7vw, 55px);
   line-height: 1;
-  margin: 22px 0;
+  letter-spacing: -2px;
 }
+
 .panel p {
   font-size: 15px;
   line-height: 1.5;
   font-weight: 700;
 }
+
 .pill {
-  margin: 18px auto 0;
-  display: table;
-  border: 1px dashed #82948b;
-  border-radius: 100px;
-  padding: 7px 12px;
+  display: inline-block;
+  margin-top: 17px;
+  padding: 8px 13px;
+  border: 1px dashed #8d9b91;
+  border-radius: 30px;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 1px;
+  letter-spacing: 0.7px;
 }
+
 button {
   display: block;
-  margin: 23px auto 0;
-  cursor: pointer;
-  background: var(--pink);
+  margin: 24px auto 0;
+  padding: 15px 31px;
   border: 3px solid var(--ink);
-  border-radius: 11px;
+  border-radius: 12px;
+  background: var(--coral);
   box-shadow: 0 6px 0 var(--ink);
-  padding: 15px 32px;
-  font: 900 17px 'DM Sans', sans-serif;
   color: var(--ink);
-  transition: transform .1s, box-shadow .1s;
+  font: 900 17px "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
 }
+
 button:hover:not(:disabled) {
   transform: translateY(2px);
   box-shadow: 0 4px 0 var(--ink);
 }
-button:disabled { opacity: .6; cursor: wait; }
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .panel-note {
   display: block;
-  font-size: 10px;
-  letter-spacing: 1px;
-  font-weight: 800;
-  opacity: .65;
   margin-top: 24px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  opacity: 0.65;
 }
+
 @media (max-width: 600px) {
-  .topbar { top: 14px; left: 12px; right: 12px; }
-  .wordmark { font-size: 23px; }
-  .stats > div { min-width: 52px; padding: 8px 5px; font-size: 9px; }
-  .stats strong { font-size: 17px; }
-  .message { top: 16%; font-size: 10px; }
-  .controls { font-size: 9px; }
-  .panel { padding: 26px 18px; }
-  .panel h1 { letter-spacing: -5px; }
+  .topbar {
+    top: 13px;
+    left: 12px;
+    right: 12px;
+  }
+
+  .wordmark {
+    font-size: 23px;
+  }
+
+  .stats > div {
+    min-width: 52px;
+    padding: 8px 5px;
+    font-size: 9px;
+  }
+
+  .stats strong {
+    font-size: 17px;
+  }
+
+  .message {
+    top: 16%;
+    font-size: 10px;
+  }
+
+  .controls {
+    font-size: 9px;
+  }
+
+  .panel {
+    padding: 28px 18px;
+  }
+
+  .panel h1 {
+    letter-spacing: -5px;
+  }
 }

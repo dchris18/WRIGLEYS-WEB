@@ -1,951 +1,1038 @@
 
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js';
-import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/geometries/RoundedBoxGeometry.js';
+import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
-// GUM SPIT — BALCONY CLUB V4: SOFT CITY
-// All geometry is generated in code; no models or textures required.
+// ============================================
+// GUM SPIT V5 — MINIATURE CITY
+// ============================================
 
 const $ = id => document.getElementById(id);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#b9d7d2');
-scene.fog = new THREE.FogExp2('#b9d7d2', 0.0045);
+scene.background = new THREE.Color("#8bbfba");
+scene.fog = new THREE.Fog("#8bbfba", 105, 265);
 
 const camera = new THREE.PerspectiveCamera(
   76,
-  innerWidth / innerHeight,
+  window.innerWidth / window.innerHeight,
   0.04,
-  450
+  500
 );
-camera.rotation.order = 'YXZ';
+
+camera.rotation.order = "YXZ";
 
 const renderer = new THREE.WebGLRenderer({
   antialias: true,
-  powerPreference: 'high-performance'
+  powerPreference: "high-performance"
 });
 
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.setSize(innerWidth, innerHeight);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.32;
+renderer.toneMappingExposure = 1.45;
 
-$('game').appendChild(renderer.domElement);
+$("game").appendChild(renderer.domElement);
 
+// ============================================
 // LIGHTING
+// ============================================
 
 scene.add(
   new THREE.HemisphereLight(
-    0xfff3df,
-    0x869c91,
-    2.9
+    0xfff4db,
+    0x668e83,
+    2.6
   )
 );
 
-const sunlight = new THREE.DirectionalLight(
-  0xffe3c1,
-  2.5
+const sun = new THREE.DirectionalLight(
+  0xffe3b7,
+  3.2
 );
 
-sunlight.position.set(-28, 56, -24);
-sunlight.castShadow = true;
-sunlight.shadow.mapSize.set(2048, 2048);
-sunlight.shadow.camera.left = -65;
-sunlight.shadow.camera.right = 65;
-sunlight.shadow.camera.top = 65;
-sunlight.shadow.camera.bottom = -65;
-sunlight.shadow.normalBias = 0.035;
+sun.position.set(-35, 65, -28);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -85;
+sun.shadow.camera.right = 85;
+sun.shadow.camera.top = 85;
+sun.shadow.camera.bottom = -85;
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far = 180;
+sun.shadow.bias = -0.0002;
+sun.shadow.normalBias = 0.035;
+sun.shadow.radius = 3;
 
-scene.add(sunlight);
+scene.add(sun);
 
+// ============================================
 // MATERIALS
+// ============================================
 
-const mat = (color, roughness = 0.95) =>
-  new THREE.MeshStandardMaterial({
+function material(color, roughness = 0.88) {
+  return new THREE.MeshStandardMaterial({
     color,
     roughness,
-    flatShading: false
+    metalness: 0
   });
+}
 
 const M = {
-  cream: mat('#f3dfbd'),
-  ivory: mat('#fff1d8'),
-  cement: mat('#c7bca9'),
-  edge: mat('#efdbc3'),
-  brick: mat('#df9e8a'),
-  brick2: mat('#e9b49a'),
-  brick3: mat('#b9a2a8'),
-  rail: mat('#526c70', 0.65),
-  metal: mat('#b9c3b7', 0.5),
-  glass: mat('#7daab2', 0.3),
-  glass2: mat('#bad9cb', 0.3),
-  asphalt: mat('#73878a'),
-  sidewalk: mat('#d7d2bd'),
-  yellow: mat('#f7d88d'),
-  grass: mat('#9ab79c'),
-  leaves: mat('#84b49a'),
-  leaves2: mat('#a7c9a4'),
-  trunk: mat('#9b7763'),
-  green: mat('#75ad94'),
-  greenDark: mat('#416f61'),
-  pink: mat('#f0a1aa'),
-  skin: mat('#dca88b'),
-  sleeve: mat('#88a9b6'),
-  gumPack: mat('#f5e9cf'),
-  gumStripe: mat('#69b69a'),
-  gumLetter: mat('#2f624b'),
-  carRed: mat('#e6a18d'),
-  carBlue: mat('#91b7c6'),
-  tire: mat('#3c4546'),
-  white: mat('#f7f0df'),
-  black: mat('#2c3d3d')
+  grass: material("#9ed46c"),
+  grassLight: material("#b4dd7f"),
+  grassDark: material("#78b568"),
+  road: material("#777476"),
+  roadDark: material("#66666c"),
+  sidewalk: material("#e4e4c9"),
+  curb: material("#c5c8ad"),
+  white: material("#fff1d9"),
+  cream: material("#f1dec0"),
+  tan: material("#dfb78a"),
+  peach: material("#edba92"),
+  coral: material("#d97f65"),
+  red: material("#e65f54"),
+  yellow: material("#f2ca72"),
+  teal: material("#39b9a7"),
+  turquoise: material("#1dd1bd"),
+  blue: material("#6e9bb3"),
+  darkBlue: material("#3e617a"),
+  lavender: material("#b6a6c7"),
+  roof: material("#a76e58"),
+  roofDark: material("#715e67"),
+  glass: material("#76b3b7", 0.35),
+  glassLight: material("#c1e4d6", 0.35),
+  windowDark: material("#3b6c75"),
+  tree: material("#4b9c56"),
+  treeLight: material("#80c46a"),
+  treeDark: material("#377c4b"),
+  trunk: material("#9c7653"),
+  metal: material("#617a7b", 0.55),
+  metalLight: material("#b3c1b6", 0.55),
+  tire: material("#354449"),
+  skin: material("#e4af8d"),
+  gum: material("#ee8f9b"),
+  gumWrapper: material("#f9edcb"),
+  gumGreen: material("#61b48b"),
+  shadow: material("#556a60")
 };
 
-// ROUNDED GEOMETRY
+const peopleShirts = [
+  material("#ee9588"),
+  material("#e6c16f"),
+  material("#8facc8"),
+  material("#9cba89"),
+  material("#b4a2c7"),
+  material("#db9e6c")
+];
 
-const roundedCache = new Map();
+const peopleSkin = [
+  material("#f1c9a8"),
+  material("#dfa784"),
+  material("#bd8065"),
+  material("#8b5a49")
+];
 
-function roundedGeometry(w, h, d) {
-  const radius = Math.min(w, h, d) * 0.22;
-  const key = [w, h, d]
-    .map(n => n.toFixed(3))
-    .join(':');
+const peopleHair = [
+  material("#423935"),
+  material("#805941"),
+  material("#b58a56"),
+  material("#3b4c55")
+];
 
-  if (!roundedCache.has(key)) {
-    roundedCache.set(
+// ============================================
+// SHAPE HELPERS
+// ============================================
+
+const boxCache = new Map();
+
+function boxGeometry(w, h, d, radius = 0.1) {
+  const r = Math.min(
+    radius,
+    w * 0.45,
+    h * 0.45,
+    d * 0.45
+  );
+
+  const key = [w, h, d, r].join(":");
+
+  if (!boxCache.has(key)) {
+    boxCache.set(
       key,
-      new RoundedBoxGeometry(
-        w,
-        h,
-        d,
-        3,
-        Math.max(0.001, radius)
-      )
+      new RoundedBoxGeometry(w, h, d, 3, r)
     );
   }
 
-  return roundedCache.get(key);
+  return boxCache.get(key);
 }
 
-function cube(
+function box(
   parent,
   w, h, d,
-  material,
+  mat,
+  x = 0, y = 0, z = 0,
+  radius = 0.1
+) {
+  const mesh = new THREE.Mesh(
+    boxGeometry(w, h, d, radius),
+    mat
+  );
+
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+
+  return mesh;
+}
+
+function cylinder(
+  parent,
+  rt, rb, h,
+  mat,
+  x = 0, y = 0, z = 0,
+  sides = 12
+) {
+  const mesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(
+      rt, rb, h, sides
+    ),
+    mat
+  );
+
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+
+  return mesh;
+}
+
+function sphere(
+  parent,
+  radius,
+  mat,
   x = 0, y = 0, z = 0
 ) {
-  const o = new THREE.Mesh(
-    roundedGeometry(w, h, d),
-    material
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(radius, 16, 12),
+    mat
   );
 
-  o.position.set(x, y, z);
-  o.castShadow = true;
-  o.receiveShadow = true;
-  parent.add(o);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
 
-  return o;
+  return mesh;
 }
 
-function cyl(
+function cone(
   parent,
-  rTop, rBottom, h,
-  material,
+  radius,
+  height,
+  mat,
   x = 0, y = 0, z = 0,
-  segments = 18
+  sides = 5
 ) {
-  const o = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      rTop,
-      rBottom,
-      h,
-      segments
+  const mesh = new THREE.Mesh(
+    new THREE.ConeGeometry(
+      radius, height, sides
     ),
-    material
+    mat
   );
 
-  o.position.set(x, y, z);
-  o.castShadow = true;
-  o.receiveShadow = true;
-  parent.add(o);
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
 
-  return o;
-}
-
-function ball(
-  parent,
-  r,
-  material,
-  x = 0, y = 0, z = 0,
-  detail = 2
-) {
-  const o = new THREE.Mesh(
-    new THREE.SphereGeometry(r, 16, 12),
-    material
-  );
-
-  o.position.set(x, y, z);
-  o.castShadow = true;
-  parent.add(o);
-
-  return o;
+  return mesh;
 }
 
 function labelTexture(text, bg, fg) {
-  const c = document.createElement('canvas');
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 256;
 
-  c.width = 512;
-  c.height = 256;
-
-  const ctx = c.getContext('2d');
-
+  const ctx = canvas.getContext("2d");
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, 512, 256);
-
   ctx.fillStyle = fg;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = '900 92px Arial';
-  ctx.fillText(text, 256, 132);
+  ctx.font = "bold 86px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, 256, 130);
 
-  const t = new THREE.CanvasTexture(c);
-  t.colorSpace = THREE.SRGBColorSpace;
-
-  return t;
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
 }
 
+function seeded(n) {
+  const x = Math.sin(n * 127.1 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+function lerp(a, b, t) {
+  return THREE.MathUtils.lerp(a, b, t);
+}
+
+function ease(t) {
+  t = THREE.MathUtils.clamp(t, 0, 1);
+  return t * t * (3 - 2 * t);
+}
+
+// ============================================
 // WORLD GROUPS
+// ============================================
 
-const city = new THREE.Group();
+const world = new THREE.Group();
 const balcony = new THREE.Group();
-const trash = new THREE.Group();
-
-scene.add(city, balcony, trash, camera);
-
+const bin = new THREE.Group();
+const peopleGroup = new THREE.Group();
 const hands = new THREE.Group();
+
+scene.add(world, balcony, bin, peopleGroup, camera);
 camera.add(hands);
 
-// ======================================
-// CITY
-// ======================================
+// ============================================
+// MINIATURE CITY ROADS
+// ============================================
 
-function random(seed) {
-  const n =
-    Math.sin(seed * 127.1 + 78.233) *
-    43758.5453;
-
-  return n - Math.floor(n);
+function road(x, z, w, d) {
+  box(
+    world, w, 0.12, d,
+    M.road, x, 0.02, z, 0.04
+  );
 }
 
-function makeBuilding(
-  x, z, w, d, h,
-  material,
-  front = true
-) {
-  const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  city.add(g);
+function pavement(x, z, w, d) {
+  box(
+    world, w, 0.32, d,
+    M.sidewalk, x, 0.16, z, 0.06
+  );
+}
 
-  cube(g, w, h, d, material, 0, h / 2, 0);
+function grassPlot(x, z, w, d) {
+  box(
+    world, w, 0.36, d,
+    M.grassLight, x, 0.2, z, 0.04
+  );
+}
 
-  cube(
-    g,
-    w + 0.45, 0.45, d + 0.45,
-    M.cream,
-    0, h + 0.1, 0
+function roadStripe(x, z, w, d) {
+  box(
+    world, w, 0.025, d,
+    M.cream, x, 0.1, z, 0.015
+  );
+}
+
+function makeRoadNetwork() {
+  box(
+    world, 350, 0.4, 350,
+    M.grass, 0, -0.3, -65, 0.02
   );
 
-  cube(
-    g,
-    w + 0.25, 0.4, d + 0.25,
-    M.brick3,
-    0, h - 0.45, 0
-  );
+  // Main road directly beneath balcony.
+  road(0, -34, 190, 20);
 
-  // Windows
+  // Further horizontal street.
+  road(0, -84, 190, 17);
 
-  for (let y = 3; y < h - 2; y += 3.9) {
-    for (
-      let xx = -w / 2 + 1.8;
-      xx < w / 2 - 0.5;
-      xx += 3.2
-    ) {
-      for (const side of [-1, 1]) {
-        cube(
-          g,
-          1.65, 2.1, 0.08,
-          ((y + xx) % 3 > 1
-            ? M.glass2
-            : M.glass),
-          xx,
-          y,
-          side * (d / 2 + 0.05)
-        );
+  // Cross streets.
+  road(-39, -65, 16, 100);
+  road(39, -65, 16, 100);
 
-        cube(
-          g,
-          1.95, 0.16, 0.36,
-          M.cream,
-          xx,
-          y - 1.15,
-          side * (d / 2 + 0.2)
-        );
+  // Near sidewalk.
+  pavement(0, -17, 190, 14);
 
-        cube(
-          g,
-          0.12, 2.1, 0.11,
-          M.cream,
-          xx,
-          y,
-          side * (d / 2 + 0.12)
+  // Opposite sidewalk.
+  pavement(0, -51, 190, 12);
+
+  // Far city blocks.
+  pavement(-64, -67, 34, 21);
+  pavement(0, -67, 53, 21);
+  pavement(64, -67, 34, 21);
+
+  pavement(-64, -104, 34, 20);
+  pavement(0, -104, 53, 20);
+  pavement(64, -104, 34, 20);
+
+  // Road center lines.
+  for (let x = -90; x <= 90; x += 12) {
+    roadStripe(x, -34, 5, 0.2);
+    roadStripe(x, -84, 5, 0.2);
+  }
+
+  // Crosswalks at intersections.
+  for (const cx of [-39, 39]) {
+    for (const cz of [-34, -84]) {
+      for (let i = -3; i <= 3; i++) {
+        roadStripe(
+          cx + i * 1.25,
+          cz - 7.0,
+          0.7,
+          3.4
         );
       }
     }
   }
 
-  // Street-level shopfront
+  // Sidewalk divisions.
+  for (let x = -90; x <= 90; x += 6) {
+    box(
+      world,
+      0.045, 0.025, 13.5,
+      M.curb,
+      x, 0.34, -17
+    );
+  }
+}
 
-  const side = -1;
+// ============================================
+// MINIATURE BUILDINGS
+// ============================================
 
-  cube(
-    g,
-    3.2, 3.1, 0.24,
-    M.cream,
-    0, 1.62,
-    side * (d / 2 + 0.15)
+function building(
+  x, z, w, d, h,
+  wall,
+  roof,
+  shop = false,
+  seed = 0
+) {
+  const g = new THREE.Group();
+  g.position.set(x, 0.34, z);
+  world.add(g);
+
+  box(
+    g, w, h, d,
+    wall, 0, h / 2, 0, 0.22
   );
 
-  cube(
+  // Roof cap.
+  box(
     g,
-    1.65, 2.5, 0.28,
-    M.green,
-    0, 1.33,
-    side * (d / 2 + 0.31)
+    w + 0.5, 0.42, d + 0.5,
+    roof,
+    0, h + 0.15, 0,
+    0.12
   );
 
-  ball(
-    g,
-    0.11,
-    M.yellow,
-    0.54, 1.42,
-    side * (d / 2 + 0.49)
-  );
-
-  // Colorful awning
-
-  cube(
-    g,
-    4.2, 0.25, 1.5,
-    M.yellow,
-    0, 3.25,
-    side * (d / 2 + 0.66)
-  );
-
-  for (let i = -2; i <= 2; i++) {
-    cube(
+  // Rooftop utility boxes.
+  if (h > 12) {
+    box(
       g,
-      0.44, 0.08, 1.49,
-      i % 2 ? M.ivory : M.pink,
-      i * 0.82,
-      3.08,
-      side * (d / 2 + 0.67)
+      2, 0.75, 1.8,
+      M.cream,
+      -w * 0.2, h + 0.7, 0
     );
   }
 
-  // Rooftop details
+  // Windows facing the street (-Z).
+  for (let y = 3.4; y < h - 1; y += 3.2) {
+    for (
+      let xx = -w / 2 + 1.7;
+      xx <= w / 2 - 1.3;
+      xx += 2.8
+    ) {
+      const lit = seeded(seed + xx * 3 + y) > 0.72;
 
-  for (let i = 0; i < 2; i++) {
-    const ax = -w / 4 + i * w / 2;
+      box(
+        g,
+        1.25, 1.65, 0.12,
+        lit ? M.yellow : M.windowDark,
+        xx, y, -d / 2 - 0.08,
+        0.05
+      );
 
-    cube(
+      box(
+        g,
+        1.5, 0.17, 0.34,
+        M.cream,
+        xx, y - 0.9,
+        -d / 2 - 0.2
+      );
+    }
+  }
+
+  // Ground-floor shop.
+  if (shop) {
+    box(
       g,
-      1.6, 0.8, 1.5,
-      M.metal,
-      ax, h + 0.5, 0
+      w - 1, 2.9, 0.18,
+      M.glass,
+      0, 1.7, -d / 2 - 0.12
     );
 
-    cube(
+    box(
       g,
-      1.35, 0.08, 1.3,
-      M.rail,
-      ax, h + 0.94, 0
+      1.4, 2.6, 0.2,
+      M.darkBlue,
+      0, 1.45, -d / 2 - 0.26
+    );
+
+    // Striped awning.
+    const awning = new THREE.Group();
+    awning.position.set(0, 3.25, -d / 2 - 1.0);
+    g.add(awning);
+
+    box(
+      awning,
+      w + 0.25, 0.22, 2.0,
+      M.cream,
+      0, 0, 0
+    );
+
+    const stripeCount = Math.max(4, Math.round(w / 1.1));
+    const stripeWidth = w / stripeCount;
+
+    for (let i = 0; i < stripeCount; i++) {
+      if (i % 2 === 0) {
+        box(
+          awning,
+          stripeWidth, 0.24, 2.02,
+          roof,
+          -w / 2 + stripeWidth * (i + 0.5),
+          0.015, 0
+        );
+      }
+    }
+
+    box(
+      g,
+      w - 0.8, 0.62, 0.22,
+      roof,
+      0, 4.15, -d / 2 - 0.15
+    );
+  } else {
+    // Front door.
+    box(
+      g,
+      1.6, 2.5, 0.16,
+      M.darkBlue,
+      0, 1.32, -d / 2 - 0.14
+    );
+
+    sphere(
+      g,
+      0.1,
+      M.yellow,
+      0.5, 1.35, -d / 2 - 0.28
     );
   }
 
   return g;
 }
 
-function makeTree(x, z, size = 1) {
+function house(x, z, color, seed = 0) {
   const g = new THREE.Group();
-  g.position.set(x, 0, z);
-  city.add(g);
+  g.position.set(x, 0.34, z);
+  world.add(g);
 
-  cyl(
-    g,
-    0.20 * size,
-    0.28 * size,
-    2.65 * size,
-    M.trunk,
-    0,
-    1.32 * size,
-    0,
-    14
+  box(g, 8, 5.8, 7, color, 0, 2.9, 0);
+
+  // Pitched roof.
+  const roof = new THREE.Mesh(
+    new THREE.ConeGeometry(6.2, 3.2, 4),
+    M.roof
   );
 
-  const blobs = [
-    [-0.65, 3.15, 0.1, 1.13],
-    [0.5, 3.24, -0.2, 1.22],
-    [0, 3.8, 0.2, 1.2],
-    [-0.1, 3.0, -0.65, 1.0]
-  ];
+  roof.rotation.y = Math.PI / 4;
+  roof.scale.z = 0.8;
+  roof.position.y = 7.2;
+  roof.castShadow = true;
+  g.add(roof);
 
-  blobs.forEach(([bx, by, bz, r], i) => {
-    const o = ball(
+  box(
+    g,
+    1.7, 2.5, 0.14,
+    M.darkBlue,
+    0, 1.35, -3.58
+  );
+
+  for (const xx of [-2.3, 2.3]) {
+    box(
       g,
-      r * size,
-      i % 2 ? M.leaves : M.leaves2,
-      bx * size,
-      by * size,
-      bz * size
+      1.25, 1.4, 0.15,
+      M.glassLight,
+      xx, 3.65, -3.58
     );
+  }
 
-    o.scale.set(1.1, 0.88, 1.0);
-  });
+  return g;
 }
 
-function makeCar(x, z, color) {
+// ============================================
+// PARKS, TREES, FOUNTAINS
+// ============================================
+
+function tree(x, z, scale = 1) {
   const g = new THREE.Group();
+  g.position.set(x, 0.35, z);
+  g.scale.setScalar(scale);
+  world.add(g);
 
-  g.position.set(x, 0.1, z);
-  city.add(g);
-
-  cube(
-    g,
-    3.4, 0.88, 1.85,
-    color,
-    0, 0.72, 0
+  cylinder(
+    g, 0.24, 0.32, 2.0,
+    M.trunk, 0, 1.0, 0, 8
   );
 
-  cube(
-    g,
-    1.95, 0.85, 1.65,
-    color,
-    -0.18, 1.45, 0
+  cone(
+    g, 1.4, 3.2,
+    M.treeDark,
+    0, 3.1, 0, 5
   );
 
-  cube(
-    g,
-    1.25, 0.48, 0.045,
-    M.glass2,
-    -0.18, 1.49, -0.84
+  cone(
+    g, 1.12, 2.7,
+    M.tree,
+    0, 4.0, 0, 5
   );
 
-  for (const dx of [-1.12, 1.12]) {
-    for (const dz of [-0.89, 0.89]) {
-      const wheel = cyl(
-        g,
-        0.39, 0.39, 0.23,
-        M.tire,
-        dx, 0.4, dz,
-        20
+  cone(
+    g, 0.8, 2.2,
+    M.treeLight,
+    0, 4.8, 0, 5
+  );
+}
+
+function bush(x, z, scale = 1) {
+  const g = new THREE.Group();
+  g.position.set(x, 0.5, z);
+  g.scale.setScalar(scale);
+  world.add(g);
+
+  for (let i = 0; i < 3; i++) {
+    box(
+      g,
+      0.9, 0.85, 0.9,
+      i % 2 ? M.tree : M.treeDark,
+      (i - 1) * 0.65,
+      0.3 + (i % 2) * 0.2,
+      0
+    );
+  }
+}
+
+function bench(x, z, rotation = 0) {
+  const g = new THREE.Group();
+  g.position.set(x, 0.4, z);
+  g.rotation.y = rotation;
+  world.add(g);
+
+  box(g, 2.6, 0.18, 0.75, M.roof, 0, 0.75, 0);
+
+  box(
+    g, 2.6, 0.85, 0.16,
+    M.roof,
+    0, 1.23, 0.32
+  );
+
+  for (const xx of [-1.0, 1.0]) {
+    box(
+      g, 0.13, 0.7, 0.13,
+      M.metal,
+      xx, 0.35, 0
+    );
+  }
+}
+
+function fountain(x, z) {
+  const g = new THREE.Group();
+  g.position.set(x, 0.36, z);
+  world.add(g);
+
+  box(
+    g,
+    10, 1.2, 10,
+    M.cream,
+    0, 0.6, 0
+  );
+
+  box(
+    g,
+    8.3, 0.08, 8.3,
+    M.turquoise,
+    0, 1.23, 0
+  );
+
+  cylinder(
+    g,
+    0.7, 0.9, 1.8,
+    M.white,
+    0, 2.1, 0,
+    10
+  );
+
+  cylinder(
+    g,
+    1.45, 1.15, 0.4,
+    M.white,
+    0, 3.05, 0,
+    12
+  );
+
+  sphere(
+    g,
+    0.45,
+    M.turquoise,
+    0, 3.45, 0
+  );
+}
+
+function park(x, z, w, d, type = "garden") {
+  grassPlot(x, z, w, d);
+
+  if (type === "fountain") {
+    fountain(x, z);
+
+    for (const dx of [-w / 2 + 3, w / 2 - 3]) {
+      for (const dz of [-d / 2 + 3, d / 2 - 3]) {
+        tree(x + dx, z + dz, 0.85);
+      }
+    }
+
+    bench(x - 8, z, Math.PI / 2);
+    bench(x + 8, z, -Math.PI / 2);
+  }
+
+  if (type === "garden") {
+    for (let i = 0; i < 6; i++) {
+      const xx = x - w / 2 + 3 + i * (w - 6) / 5;
+
+      if (i % 2 === 0) {
+        tree(xx, z - 2, 0.75);
+      } else {
+        bush(xx, z + 2, 1.0);
+      }
+    }
+
+    bench(x, z, 0);
+  }
+
+  if (type === "playground") {
+    // Sandbox.
+    box(
+      world,
+      6, 0.3, 5,
+      M.yellow,
+      x - 4, 0.55, z
+    );
+
+    // Slide.
+    box(
+      world,
+      1.6, 0.3, 4.8,
+      M.blue,
+      x + 4, 1.65, z
+    ).rotation.x = -0.45;
+
+    box(
+      world,
+      2, 2.3, 2,
+      M.coral,
+      x + 4, 1.3, z + 2
+    );
+
+    // Small climbing frame.
+    for (const dx of [-1.4, 1.4]) {
+      for (const dz of [-1.0, 1.0]) {
+        cylinder(
+          world,
+          0.12, 0.12, 2.8,
+          M.roof,
+          x - 4 + dx,
+          1.8,
+          z + 6 + dz
+        );
+      }
+    }
+
+    box(
+      world,
+      3.4, 0.2, 2.5,
+      M.roof,
+      x - 4, 3.25, z + 6
+    );
+
+    tree(x + w / 2 - 3, z - d / 2 + 3, 0.9);
+  }
+}
+
+// ============================================
+// CARS
+// ============================================
+
+const cars = [];
+
+function car(x, z, color, direction = 1, moving = false) {
+  const g = new THREE.Group();
+  g.position.set(x, 0.16, z);
+  world.add(g);
+
+  box(
+    g, 4.2, 1.05, 2.1,
+    color, 0, 0.85, 0, 0.42
+  );
+
+  box(
+    g, 2.3, 1.1, 1.9,
+    color, -0.25, 1.6, 0, 0.4
+  );
+
+  box(
+    g, 1.5, 0.5, 0.06,
+    M.glassLight,
+    -0.2, 1.7, -0.98
+  );
+
+  for (const xx of [-1.35, 1.35]) {
+    for (const zz of [-1.03, 1.03]) {
+      const wheel = cylinder(
+        g, 0.48, 0.48, 0.24,
+        M.tire, xx, 0.5, zz, 20
       );
-
       wheel.rotation.x = Math.PI / 2;
-
-      const hub = cyl(
-        g,
-        0.17, 0.17, 0.25,
-        M.metal,
-        dx, 0.4, dz,
-        20
-      );
-
-      hub.rotation.x = Math.PI / 2;
     }
   }
 
-  for (const dx of [-1.4, 1.4]) {
-    ball(
-      g,
-      0.17,
-      M.ivory,
-      dx, 0.81, -0.83
-    );
+  for (const xx of [-1.65, 1.65]) {
+    sphere(g, 0.16, M.yellow, xx, 0.98, -1.05);
+  }
 
-    ball(
+  g.rotation.y = direction < 0 ? Math.PI : 0;
+
+  if (moving) {
+    cars.push({
       g,
-      0.12,
-      M.pink,
-      dx, 0.8, 0.83
-    );
+      direction,
+      speed: 2.2 + seeded(x + z) * 1.5
+    });
   }
 }
+
+function updateCars(dt) {
+  for (const c of cars) {
+    c.g.position.x += c.direction * c.speed * dt;
+
+    if (c.g.position.x > 92) c.g.position.x = -92;
+    if (c.g.position.x < -92) c.g.position.x = 92;
+  }
+}
+
+// ============================================
+// COMPLETE CITY LAYOUT
+// ============================================
 
 function makeCity() {
-  // Ground
+  makeRoadNetwork();
 
-  cube(
-    city,
-    500, 0.6, 500,
-    M.grass,
-    0, -0.35, -60
-  );
+  // Building row opposite the balcony.
+  building(-69, -59, 14, 12, 12, M.cream, M.red, true, 1);
+  building(-52, -59, 14, 12, 18, M.peach, M.roof, false, 2);
+  building(-18, -59, 15, 12, 16, M.tan, M.coral, true, 3);
+  building(18, -59, 15, 12, 20, M.cream, M.darkBlue, true, 4);
+  building(54, -59, 14, 12, 14, M.peach, M.red, true, 5);
+  building(71, -59, 13, 12, 17, M.lavender, M.darkBlue, false, 6);
 
-  // Sidewalks and street
+  // Buildings behind the balcony, leaving the center clear.
+  building(-65, 11, 15, 13, 19, M.cream, M.darkBlue, true, 10);
+  building(-45, 11, 14, 13, 15, M.coral, M.red, true, 11);
+  building(45, 11, 15, 13, 17, M.peach, M.roof, true, 12);
+  building(65, 11, 15, 13, 21, M.cream, M.darkBlue, true, 13);
 
-  cube(
-    city,
-    180, 0.14, 18,
-    M.sidewalk,
-    0, 0, -14
-  );
+  // More distant neighborhoods.
+  building(-64, -104, 15, 12, 17, M.cream, M.red, true, 20);
+  building(0, -104, 16, 12, 21, M.tan, M.roof, false, 21);
+  building(64, -104, 15, 12, 19, M.blue, M.darkBlue, true, 22);
 
-  cube(
-    city,
-    180, 0.11, 25,
-    M.asphalt,
-    0, -0.01, -36
-  );
+  house(-19, -104, M.cream);
+  house(21, -104, M.peach);
 
-  cube(
-    city,
-    180, 0.14, 14,
-    M.sidewalk,
-    0, 0, -56
-  );
+  // Green public spaces between city blocks.
+  park(0, -68, 25, 18, "fountain");
+  park(-64, -82, 25, 15, "garden");
+  park(64, -82, 25, 15, "playground");
 
-  cube(
-    city,
-    180, 0.18, 0.35,
-    M.edge,
-    0, 0.08, -23.2
-  );
+  // A small landscaped plaza.
+  grassPlot(-19, -51, 14, 9);
+  grassPlot(19, -51, 14, 9);
 
-  cube(
-    city,
-    180, 0.18, 0.35,
-    M.edge,
-    0, 0.08, -48.6
-  );
-
-  // Sidewalk seams
-
-  for (let x = -85; x < 85; x += 5) {
-    cube(
-      city,
-      0.04, 0.02, 18,
-      M.cement,
-      x, 0.09, -14
-    );
-
-    cube(
-      city,
-      0.04, 0.02, 14,
-      M.cement,
-      x, 0.09, -56
-    );
+  for (const xx of [-24, -14, 14, 24]) {
+    bush(xx, -50, 0.65);
   }
 
-  // Road markings
+  // Street trees.
+  for (let x = -84; x <= 84; x += 12) {
+    if (Math.abs(x) < 10) continue;
+    if (Math.abs(x - 39) < 9) continue;
+    if (Math.abs(x + 39) < 9) continue;
 
-  for (let x = -82; x < 85; x += 12) {
-    cube(
-      city,
-      5.2, 0.025, 0.17,
-      M.yellow,
-      x, 0.07, -36
-    );
+    tree(x, -11.3, 0.78);
   }
 
-  // Far buildings
+  // Benches on near sidewalk.
+  bench(-24, -19, 0);
+  bench(24, -19, 0);
 
-  for (let i = -5; i <= 5; i++) {
-    const x = i * 19;
-
-    makeBuilding(
-      x,
-      -83,
-      16,
-      15,
-      20 + Math.floor(random(i + 11) * 17),
-      [M.brick, M.brick2, M.brick3][Math.abs(i) % 3]
-    );
-  }
-
-  // Near buildings
-
-  for (let i = -5; i <= 5; i++) {
-    if (i === 0) continue;
-
-    const x = i * 21;
-
-    makeBuilding(
-      x,
-      23,
-      18,
-      14,
-      18 + Math.floor(random(i + 40) * 16),
-      [M.brick2, M.brick3, M.brick][Math.abs(i) % 3]
-    );
-  }
-
-  // Trees
-
-  for (let i = -7; i <= 7; i++) {
-    if (Math.abs(i) < 2) continue;
-
-    makeTree(
-      i * 10.5,
-      -7.2,
-      0.75 + random(i + 100) * 0.3
-    );
-  }
-
-  // Cars
-
-  makeCar(-19, -29, M.carRed);
-  makeCar(15, -42, M.carBlue);
-  makeCar(39, -29, M.green);
-
-  // Benches
-
-  for (const x of [-12, 12]) {
-    cube(
-      city,
-      2.1, 0.2, 0.55,
+  // Decorative planter boxes.
+  for (const x of [-30, -15, 15, 30]) {
+    box(
+      world, 2.6, 0.75, 1.2,
       M.cream,
-      x, 0.64, -19
+      x, 0.58, -21
     );
 
-    cube(
-      city,
-      2.1, 0.72, 0.2,
-      M.green,
-      x, 1.08, -19.24
-    );
-
-    for (const dx of [-0.8, 0.8]) {
-      cyl(
-        city,
-        0.08, 0.08, 0.65,
-        M.rail,
-        x + dx, 0.33, -19,
-        12
-      );
-    }
+    bush(x, -21, 0.75);
   }
 
-  // Planters
-
-  for (const x of [-31, -16, 18, 33]) {
-    cube(
-      city,
-      2.3, 0.55, 1.3,
-      M.brick3,
-      x, 0.3, -20
+  // Streetlights.
+  for (const x of [-31, 31]) {
+    cylinder(
+      world, 0.12, 0.14, 6.5,
+      M.metal,
+      x, 3.4, -24, 12
     );
 
-    ball(
-      city,
-      0.9,
-      M.leaves2,
-      x, 1.2, -20
-    );
-  }
-
-  // Streetlights
-
-  for (const x of [-28, 27]) {
-    cyl(
-      city,
-      0.08, 0.1, 6.4,
-      M.rail,
-      x, 3.2, -23,
-      8
+    box(
+      world, 1.7, 0.2, 0.4,
+      M.metal,
+      x + 0.7, 6.65, -24
     );
 
-    cube(
-      city,
-      1.3, 0.18, 0.45,
-      M.rail,
-      x + 0.55, 6.4, -23
-    );
-
-    cube(
-      city,
-      0.9, 0.05, 0.32,
+    box(
+      world, 1.0, 0.06, 0.3,
       M.yellow,
-      x + 0.6, 6.25, -23
+      x + 0.75, 6.52, -24
     );
   }
+
+  // Toy-like traffic.
+  car(-70, -30, M.red, 1, true);
+  car(24, -39, M.blue, -1, true);
+  car(65, -30, M.yellow, 1, true);
+  car(-20, -88, M.teal, -1, false);
 }
 
-// ======================================
-// ROUNDED PEDESTRIANS
-// ======================================
+// ============================================
+// PEDESTRIANS
+// ============================================
 
 const pedestrians = [];
-const peopleGroup = new THREE.Group();
 
-scene.add(peopleGroup);
-
-const shirtColors = [
-  '#f0a3a4',
-  '#91b4c5',
-  '#e7c078',
-  '#a4bd99',
-  '#b9a4cb',
-  '#e6a987'
-];
-
-const skinColors = [
-  '#f0c4a1',
-  '#dba181',
-  '#aa7259',
-  '#7d5549'
-];
-
-const hairColors = [
-  '#4b3b39',
-  '#77513e',
-  '#b6845c',
-  '#394c55'
-];
-
-const peopleMaterials = {
-  shirts: shirtColors.map(c => mat(c)),
-  skins: skinColors.map(c => mat(c)),
-  hair: hairColors.map(c => mat(c)),
-  pants: [
-    mat('#657783'),
-    mat('#8a7a79'),
-    mat('#667c6b')
-  ]
-};
-
-function makePerson(
-  x, z,
-  direction,
-  speed,
-  index
-) {
+function pedestrian(x, z, direction, speed, index) {
   const g = new THREE.Group();
-
-  g.position.set(x, 0.14, z);
+  g.position.set(x, 0.38, z);
   peopleGroup.add(g);
 
-  const skin =
-    peopleMaterials.skins[
-      index % peopleMaterials.skins.length
-    ];
+  const shirt = peopleShirts[index % peopleShirts.length];
+  const skin = peopleSkin[index % peopleSkin.length];
+  const hair = peopleHair[index % peopleHair.length];
 
-  const shirt =
-    peopleMaterials.shirts[
-      index % peopleMaterials.shirts.length
-    ];
+  const body = sphere(g, 0.46, shirt, 0, 1.2, 0);
+  body.scale.set(0.9, 1.18, 0.72);
 
-  const hair =
-    peopleMaterials.hair[
-      index % peopleMaterials.hair.length
-    ];
+  const head = sphere(g, 0.36, skin, 0, 2.03, 0);
+  head.scale.y = 1.08;
 
-  const pants =
-    peopleMaterials.pants[
-      index % peopleMaterials.pants.length
-    ];
+  const hairCap = sphere(g, 0.37, hair, 0, 2.25, 0.04);
+  hairCap.scale.y = 0.42;
 
-  // Rounded torso
-
-  const body = ball(
-    g,
-    0.51,
-    shirt,
-    0, 1.37, 0
-  );
-
-  body.scale.set(0.95, 1.16, 0.72);
-
-  // Head
-
-  const head = ball(
-    g,
-    0.39,
-    skin,
-    0, 2.25, -0.02
-  );
-
-  head.scale.set(1, 1.08, 0.96);
-
-  // Hair
-
-  const cap = ball(
-    g,
-    0.39,
-    hair,
-    0, 2.47, 0.035
-  );
-
-  cap.scale.set(1.04, 0.42, 1.03);
-
-  // Eyes
-
-  for (const ex of [-0.13, 0.13]) {
-    ball(
-      g,
-      0.035,
-      M.black,
-      ex, 2.29, -0.386
-    );
+  for (const ex of [-0.12, 0.12]) {
+    sphere(g, 0.035, M.tire, ex, 2.06, -0.34);
   }
 
-  // Arms
+  const arms = [];
+  const legs = [];
 
-  const leftArm = new THREE.Group();
-  const rightArm = new THREE.Group();
+  for (const side of [-1, 1]) {
+    const arm = new THREE.Group();
+    arm.position.set(side * 0.47, 1.47, 0);
+    g.add(arm);
 
-  leftArm.position.set(-0.51, 1.65, 0);
-  rightArm.position.set(0.51, 1.65, 0);
+    const sleeve = sphere(
+      arm, 0.19, shirt,
+      side * 0.03, -0.2, 0
+    );
+    sleeve.scale.set(0.8, 1.45, 0.8);
 
-  g.add(leftArm, rightArm);
-
-  for (const [arm, sgn] of [
-    [leftArm, -1],
-    [rightArm, 1]
-  ]) {
-    const sleeve = ball(
-      arm,
-      0.20,
-      shirt,
-      sgn * 0.025,
-      -0.18,
-      0
+    cylinder(
+      arm, 0.10, 0.10, 0.38,
+      skin, side * 0.03, -0.5, 0, 10
     );
 
-    sleeve.scale.set(0.8, 1.35, 0.9);
-
-    cyl(
-      arm,
-      0.11, 0.12, 0.43,
-      skin,
-      sgn * 0.04,
-      -0.48,
-      0,
-      14
+    sphere(
+      arm, 0.11, skin,
+      side * 0.03, -0.7, 0
     );
 
-    ball(
-      arm,
-      0.12,
-      skin,
-      sgn * 0.04,
-      -0.72,
-      0
+    arms.push(arm);
+
+    const leg = new THREE.Group();
+    leg.position.set(side * 0.19, 0.85, 0);
+    g.add(leg);
+
+    box(
+      leg, 0.26, 0.7, 0.28,
+      M.darkBlue,
+      0, -0.35, 0
     );
+
+    const shoe = sphere(
+      leg, 0.18, M.tire,
+      0, -0.72, -0.09
+    );
+    shoe.scale.set(0.9, 0.65, 1.4);
+
+    legs.push(leg);
   }
-
-  // Legs
-
-  const leftLeg = new THREE.Group();
-  const rightLeg = new THREE.Group();
-
-  leftLeg.position.set(-0.21, 0.95, 0);
-  rightLeg.position.set(0.21, 0.95, 0);
-
-  g.add(leftLeg, rightLeg);
-
-  for (const leg of [leftLeg, rightLeg]) {
-    cube(
-      leg,
-      0.28, 0.76, 0.32,
-      pants,
-      0, -0.38, 0
-    );
-
-    const shoe = ball(
-      leg,
-      0.19,
-      M.black,
-      0, -0.76, -0.09
-    );
-
-    shoe.scale.set(0.9, 0.65, 1.45);
-  }
-
-  // Backpacks
 
   if (index % 5 === 0) {
-    const bag = ball(
-      g,
-      0.34,
-      M.greenDark,
-      0, 1.35, 0.37
+    const backpack = sphere(
+      g, 0.3, M.treeDark,
+      0, 1.22, 0.35
     );
-
-    bag.scale.set(0.8, 1.2, 0.48);
+    backpack.scale.set(0.85, 1.2, 0.6);
   }
-
-  // Hats
-
-  if (index % 6 === 0) {
-    cyl(
-      g,
-      0.41, 0.41, 0.12,
-      M.yellow,
-      0, 2.62, 0,
-      20
-    );
-
-    cube(
-      g,
-      0.68, 0.07, 0.32,
-      M.yellow,
-      0, 2.59, -0.32
-    );
-  }
-
-  // Face walking direction
 
   g.rotation.y =
-    direction > 0
-      ? -Math.PI / 2
-      : Math.PI / 2;
+    direction > 0 ? -Math.PI / 2 : Math.PI / 2;
 
-  const scale =
-    0.86 + random(index + 37) * 0.28;
-
-  g.scale.setScalar(scale);
+  g.scale.setScalar(
+    0.85 + seeded(index + 30) * 0.25
+  );
 
   pedestrians.push({
     g,
-    leftArm,
-    rightArm,
-    leftLeg,
-    rightLeg,
+    arms,
+    legs,
     direction,
     speed,
-    phase: random(index + 200) * 6.28
+    phase: seeded(index + 80) * Math.PI * 2
   });
 }
 
 function makePedestrians() {
-  for (let i = 0; i < 10; i++) {
-    makePerson(
-      -63 + i * 14,
-      -10 - (i % 3) * 2,
+  for (let i = 0; i < 12; i++) {
+    pedestrian(
+      -72 + i * 13,
+      -14 - (i % 3) * 2,
       i % 2 ? 1 : -1,
-      0.9 + random(i + 10) * 0.9,
+      0.8 + seeded(i + 10) * 0.9,
       i
     );
   }
 
-  for (let i = 0; i < 8; i++) {
-    makePerson(
-      -60 + i * 17,
-      -53 - (i % 2) * 2,
+  for (let i = 0; i < 10; i++) {
+    pedestrian(
+      -70 + i * 15,
+      -49 - (i % 2) * 2,
       i % 2 ? -1 : 1,
-      0.8 + random(i + 90),
-      i + 10
+      0.8 + seeded(i + 60),
+      i + 12
     );
   }
 }
@@ -953,37 +1040,27 @@ function makePedestrians() {
 function updatePedestrians(dt) {
   for (const p of pedestrians) {
     p.phase += dt * p.speed * 5;
+    p.g.position.x += p.direction * p.speed * dt;
 
-    p.g.position.x +=
-      p.direction * p.speed * dt;
-
-    if (p.g.position.x > 85) {
-      p.g.position.x = -85;
-    }
-
-    if (p.g.position.x < -85) {
-      p.g.position.x = 85;
-    }
+    if (p.g.position.x > 90) p.g.position.x = -90;
+    if (p.g.position.x < -90) p.g.position.x = 90;
 
     const step = Math.sin(p.phase);
 
-    p.leftLeg.rotation.x = step * 0.55;
-    p.rightLeg.rotation.x = -step * 0.55;
+    p.legs[0].rotation.x = step * 0.5;
+    p.legs[1].rotation.x = -step * 0.5;
 
-    p.leftArm.rotation.x = -step * 0.46;
-    p.rightArm.rotation.x = step * 0.46;
+    p.arms[0].rotation.x = -step * 0.4;
+    p.arms[1].rotation.x = step * 0.4;
 
-    p.g.position.y =
-      0.14 + Math.abs(step) * 0.055;
-
-    p.g.rotation.z =
-      Math.sin(p.phase * 0.5) * 0.035;
+    p.g.position.y = 0.38 + Math.abs(step) * 0.055;
+    p.g.rotation.z = Math.sin(p.phase * 0.5) * 0.025;
   }
 }
 
-// ======================================
+// ============================================
 // GAME STATE
-// ======================================
+// ============================================
 
 let floor = 1;
 let score = 0;
@@ -991,7 +1068,7 @@ let wind = 0;
 let power = 60;
 let height = 12;
 
-let state = 'idle';
+let state = "idle";
 let introTime = 0;
 let yaw = 0;
 let pitch = -0.2;
@@ -999,7 +1076,6 @@ let locked = false;
 
 let projectile = null;
 let flightTime = 0;
-let misses = 0;
 
 const velocity = new THREE.Vector3();
 const previous = new THREE.Vector3();
@@ -1016,120 +1092,117 @@ let rightHand;
 let leftHand;
 let chewGum;
 
-// ======================================
+// ============================================
 // BALCONY
-// ======================================
+// ============================================
 
 function makeBalcony() {
   balcony.clear();
 
   const ground = height - 1.65;
 
-  // Building behind player
-
-  cube(
+  // Apartment building behind the player.
+  box(
     balcony,
     32, 100, 11,
-    M.brick,
-    0, ground - 14, 9.2
+    M.peach,
+    0, ground - 14, 9.2,
+    0.2
   );
 
-  // Balcony floor
-
-  cube(
+  // Balcony slab.
+  box(
     balcony,
     8.6, 0.32, 6.3,
-    M.cement,
+    M.sidewalk,
     0, ground - 0.2, -1.05
   );
 
-  cube(
+  box(
     balcony,
-    8.8, 0.13, 0.3,
-    M.edge,
+    8.8, 0.15, 0.32,
+    M.cream,
     0, ground - 0.08, -4.12
   );
 
-  // Railings
-
-  cube(
+  // Rounded railings.
+  box(
     balcony,
-    8.6, 0.15, 0.14,
-    M.rail,
+    8.6, 0.18, 0.16,
+    M.metal,
     0, ground + 1.1, RAIL_Z
   );
 
-  cube(
+  box(
     balcony,
-    8.6, 0.09, 0.11,
-    M.rail,
+    8.6, 0.1, 0.12,
+    M.metal,
     0, ground + 0.45, RAIL_Z
   );
 
   for (let x = -4.1; x <= 4.2; x += 0.65) {
-    cube(
+    cylinder(
       balcony,
-      0.085, 1.15, 0.085,
-      M.rail,
-      x, ground + 0.58, RAIL_Z
+      0.055, 0.055, 1.15,
+      M.metal,
+      x, ground + 0.58, RAIL_Z,
+      10
     );
   }
 
   for (const side of [-1, 1]) {
-    cube(
+    box(
       balcony,
-      0.14, 0.15, 6.3,
-      M.rail,
+      0.16, 0.16, 6.3,
+      M.metal,
       side * 4.25,
       ground + 1.1,
       -1.05
     );
 
     for (let z = -3.9; z < 2; z += 0.75) {
-      cube(
+      cylinder(
         balcony,
-        0.085, 1.15, 0.085,
-        M.rail,
+        0.055, 0.055, 1.15,
+        M.metal,
         side * 4.25,
         ground + 0.58,
-        z
+        z,
+        10
       );
     }
   }
 
-  // Apartment door
-
-  cube(
+  // Apartment door.
+  box(
     balcony,
     3.5, 4.5, 0.3,
     M.cream,
     0, ground + 2.15, 3.65
   );
 
-  cube(
+  box(
     balcony,
     2.7, 3.9, 0.08,
     M.glass,
     0, ground + 2.1, 3.47
   );
 
-  cube(
+  box(
     balcony,
     0.12, 3.9, 0.15,
-    M.cream,
+    M.white,
     0, ground + 2.1, 3.38
   );
 
-  cube(
+  sphere(
     balcony,
-    0.17, 0.17, 0.16,
-    M.metal,
+    0.1, M.yellow,
     1.0, ground + 1.9, 3.3
   );
 
-  // Table
-
-  cube(
+  // Little balcony table.
+  box(
     balcony,
     1.0, 0.12, 0.7,
     M.cream,
@@ -1138,9 +1211,9 @@ function makeBalcony() {
 
   for (const dx of [-0.37, 0.37]) {
     for (const dz of [-0.24, 0.24]) {
-      cube(
+      cylinder(
         balcony,
-        0.1, 0.62, 0.1,
+        0.06, 0.06, 0.62,
         M.trunk,
         -3.15 + dx,
         ground + 0.31,
@@ -1149,44 +1222,42 @@ function makeBalcony() {
     }
   }
 
-  // Plant
-
-  cyl(
+  // Potted plant.
+  cylinder(
     balcony,
     0.44, 0.34, 0.55,
-    M.brick3,
+    M.coral,
     3.1, ground + 0.28, 0.6,
-    9
+    12
   );
 
-  ball(
+  sphere(
     balcony,
-    0.55,
-    M.leaves2,
+    0.55, M.treeLight,
     3.1, ground + 0.86, 0.6
   );
 }
 
-// ======================================
+// ============================================
 // TRASH CAN
-// ======================================
+// ============================================
 
 function makeTrash() {
-  trash.clear();
-  trash.position.copy(target);
+  bin.clear();
+  bin.position.copy(target);
 
-  cyl(
-    trash,
+  cylinder(
+    bin,
     0.73, 0.56, 1.35,
-    M.green,
+    M.teal,
     0, 0.675, 0,
     32
   );
 
-  cyl(
-    trash,
-    0.61, 0.61, 0.035,
-    M.greenDark,
+  cylinder(
+    bin,
+    0.6, 0.6, 0.035,
+    M.tire,
     0, 1.37, 0,
     32
   );
@@ -1195,20 +1266,20 @@ function makeTrash() {
     new THREE.TorusGeometry(
       0.68, 0.075, 12, 40
     ),
-    M.metal
+    M.metalLight
   );
 
   rim.rotation.x = Math.PI / 2;
   rim.position.y = 1.4;
-  trash.add(rim);
+  bin.add(rim);
 
   for (let i = 0; i < 12; i++) {
     const a = i * Math.PI / 6;
 
-    cube(
-      trash,
+    box(
+      bin,
       0.045, 0.95, 0.045,
-      M.greenDark,
+      M.treeDark,
       Math.cos(a) * 0.6,
       0.67,
       Math.sin(a) * 0.6
@@ -1222,42 +1293,37 @@ function makeTrash() {
     new THREE.MeshBasicMaterial({
       color: 0xffd780,
       transparent: true,
-      opacity: 0.8
+      opacity: 0.85
     })
   );
 
   ring.rotation.x = Math.PI / 2;
   ring.position.y = 1.72;
-  ring.name = 'targetRing';
-  trash.add(ring);
+  ring.name = "targetRing";
+  bin.add(ring);
 
   const sticker = new THREE.Mesh(
     new THREE.PlaneGeometry(0.62, 0.28),
     new THREE.MeshBasicMaterial({
       map: labelTexture(
-        'BIN',
-        '#e8e2c8',
-        '#365d50'
+        "BIN",
+        "#f9edcb",
+        "#416f61"
       ),
-      transparent: false,
       side: THREE.DoubleSide
     })
   );
 
   sticker.position.set(0, 0.85, 0.61);
-  trash.add(sticker);
+  bin.add(sticker);
 }
 
-// ======================================
+// ============================================
 // FIRST-PERSON HANDS AND GUM
-// ======================================
+// ============================================
 
 function makeHands() {
   hands.clear();
-
-  const palmGeo = new THREE.SphereGeometry(
-    0.16, 10, 8
-  );
 
   function hand(side) {
     const group = new THREE.Group();
@@ -1270,42 +1336,40 @@ function makeHands() {
 
     hands.add(group);
 
-    const arm = cyl(
+    const arm = cylinder(
       group,
       0.12, 0.15, 0.42,
-      M.sleeve,
+      M.blue,
       side * 0.03,
       -0.27,
       0,
-      9
+      12
     );
 
     arm.rotation.z = side * 0.25;
 
-    const palm = new THREE.Mesh(
-      palmGeo,
-      M.skin
+    const palm = sphere(
+      group,
+      0.16,
+      M.skin,
+      0, 0, 0
     );
 
     palm.scale.set(0.9, 1.2, 0.55);
-    group.add(palm);
 
     for (let i = 0; i < 4; i++) {
-      const finger = cyl(
+      const finger = cylinder(
         group,
-        0.035,
-        0.043,
+        0.035, 0.043,
         0.18 - i * 0.012,
         M.skin,
-        side * 0.04 +
-          (i - 1.5) * 0.075,
+        side * 0.04 + (i - 1.5) * 0.075,
         0.14,
         -0.04,
-        7
+        8
       );
 
-      finger.rotation.z =
-        (i - 1.5) * 0.1;
+      finger.rotation.z = (i - 1.5) * 0.1;
     }
 
     return group;
@@ -1314,129 +1378,116 @@ function makeHands() {
   leftHand = hand(-1);
   rightHand = hand(1);
 
-  // Gum pack
-
+  // Gum pack.
   pack = new THREE.Group();
   pack.position.set(-0.03, -0.3, -0.76);
   hands.add(pack);
 
-  cube(
+  box(
     pack,
     0.74, 0.36, 0.16,
-    M.gumPack
+    M.gumWrapper
   );
 
-  cube(
+  box(
     pack,
     0.75, 0.085, 0.17,
-    M.gumStripe,
+    M.gumGreen,
     0, 0.13, 0
   );
 
-  cube(
+  box(
     pack,
     0.75, 0.075, 0.17,
-    M.gumStripe,
+    M.gumGreen,
     0, -0.14, 0
   );
 
-  const face = new THREE.Mesh(
+  const label = new THREE.Mesh(
     new THREE.PlaneGeometry(0.58, 0.18),
     new THREE.MeshBasicMaterial({
       map: labelTexture(
-        'GUM',
-        '#f5e9cf',
-        '#2f624b'
-      ),
-      transparent: false
+        "GUM",
+        "#f9edcb",
+        "#416f61"
+      )
     })
   );
 
-  face.position.set(0, 0, 0.088);
-  pack.add(face);
+  label.position.set(0, 0, 0.088);
+  pack.add(label);
 
-  // Pack flap
-
+  // Wrapper flap.
   flap = new THREE.Group();
   flap.position.set(0, 0.18, -0.04);
   pack.add(flap);
 
-  cube(
+  box(
     flap,
     0.74, 0.19, 0.035,
-    M.gumPack,
+    M.gumWrapper,
     0, 0.09, 0
   );
 
-  // Wrapped sticks
-
+  // Wrapped sticks.
   for (let i = 0; i < 5; i++) {
-    cube(
+    box(
       pack,
       0.105, 0.25, 0.04,
-      M.ivory,
+      M.white,
       -0.25 + i * 0.125,
       0.015,
       -0.12
     );
   }
 
-  // Individual gum stick
-
   stick = new THREE.Group();
   pack.add(stick);
+  stick.position.set(0.1, 0.02, -0.18);
 
-  stick.position.set(
-    0.1, 0.02, -0.18
-  );
-
-  cube(
+  box(
     stick,
     0.115, 0.28, 0.05,
-    M.ivory
+    M.white
   );
 
-  cube(
+  box(
     stick,
     0.115, 0.055, 0.052,
-    M.metal,
+    M.metalLight,
     0, 0.1, 0
   );
 
-  chewGum = ball(
+  chewGum = sphere(
     hands,
     0.08,
-    M.pink,
+    M.gum,
     0, -0.1, -0.48
   );
 
   chewGum.visible = false;
 }
 
-// ======================================
-// HUD
-// ======================================
+// ============================================
+// HUD AND CAMERA
+// ============================================
 
 function updateHud() {
-  $('floor').textContent = floor;
-  $('score').textContent = score;
+  $("floor").textContent = floor;
+  $("score").textContent = score;
 
-  $('wind').textContent =
-    (wind >= 0 ? '+' : '') +
-    wind.toFixed(1);
+  $("wind").textContent =
+    (wind >= 0 ? "+" : "") + wind.toFixed(1);
 
-  $('powerText').textContent =
-    power + '%';
-
-  $('powerFill').style.width =
-    power + '%';
+  $("powerText").textContent = power + "%";
+  $("powerFill").style.width = power + "%";
 }
 
 function message(text) {
-  $('message').textContent = text;
+  $("message").textContent = text;
 }
 
-function angles() {
+function applyAngles() {
   camera.rotation.y = yaw;
   camera.rotation.x = pitch;
 }
@@ -1453,14 +1504,9 @@ function targetAngles() {
   };
 }
 
-function smooth(x) {
-  x = THREE.MathUtils.clamp(x, 0, 1);
-  return x * x * (3 - 2 * x);
-}
-
-// ======================================
+// ============================================
 // LEVEL SETUP
-// ======================================
+// ============================================
 
 function resetLevel() {
   height = 12 + (floor - 1) * 6;
@@ -1470,21 +1516,18 @@ function resetLevel() {
     (Math.random() - 0.5) *
     Math.min(0.5 * floor, 3);
 
+  // Target remains on the near sidewalk.
   target.set(
     (Math.random() - 0.5) * 3,
-    0,
-    -12.0 - Math.random() * 1.8
+    0.34,
+    -12 - Math.random() * 1.8
   );
 
-  camera.position.set(
-    0,
-    height,
-    START_Z
-  );
+  camera.position.set(0, height, START_Z);
 
   yaw = 0;
   pitch = -0.16;
-  angles();
+  applyAngles();
 
   if (projectile) {
     scene.remove(projectile);
@@ -1496,66 +1539,49 @@ function resetLevel() {
   makeTrash();
   makeHands();
 
-  // Keep the hands visible for each new intro.
   hands.visible = true;
 
-  $('crosshair').classList.add('hidden');
-  $('powerHud').classList.add('hidden');
+  $("crosshair").classList.add("hidden");
+  $("powerHud").classList.add("hidden");
 
-  state = 'intro';
+  state = "intro";
   introTime = 0;
 
-  message('UNWRAPPING THE GUM…');
+  message("UNWRAPPING THE GUM...");
   updateHud();
 }
 
-// START BUTTON
+$("startButton").addEventListener("click", () => {
+  if (state !== "idle") return;
 
-$('startButton').addEventListener(
-  'click',
-  () => {
-    if (state !== 'idle') return;
+  $("startScreen").classList.add("hidden");
+  $("hud").classList.remove("hidden");
 
-    $('startScreen').classList.add('hidden');
-    $('hud').classList.remove('hidden');
+  resetLevel();
+});
 
-    resetLevel();
-  }
-);
-
-// ======================================
+// ============================================
 // AUTOMATIC FOUR-SECOND INTRO
-// ======================================
+// ============================================
 
 function updateIntro(dt) {
-  if (state !== 'intro') return;
+  if (state !== "intro") return;
 
   introTime += dt;
   const t = introTime;
 
-  // OPEN PACK
-
   if (t < 0.8) {
-    message('UNWRAPPING THE GUM…');
+    message("UNWRAPPING THE GUM...");
 
-    flap.rotation.x =
-      -2.45 * smooth(t / 0.7);
-
-    pack.rotation.z =
-      Math.sin(t * 8) * 0.06;
-
-    leftHand.rotation.z =
-      -0.08 * Math.sin(t * 8);
+    flap.rotation.x = -2.45 * ease(t / 0.7);
+    pack.rotation.z = Math.sin(t * 8) * 0.06;
+    leftHand.rotation.z = -0.08 * Math.sin(t * 8);
   }
 
-  // REMOVE STICK
-
   else if (t < 1.4) {
-    message('ONE FRESH STICK…');
+    message("ONE FRESH STICK...");
 
-    const p = smooth(
-      (t - 0.8) / 0.6
-    );
+    const p = ease((t - 0.8) / 0.6);
 
     stick.position.set(
       0.1 + p * 0.18,
@@ -1563,23 +1589,16 @@ function updateIntro(dt) {
       -0.18 + p * 0.16
     );
 
-    rightHand.position.y =
-      -0.48 + p * 0.24;
-
+    rightHand.position.y = -0.48 + p * 0.24;
     pack.rotation.z = -0.07;
   }
 
-  // CHEW
-
   else if (t < 2.0) {
-    message('CHOMP CHOMP…');
+    message("CHOMP CHOMP...");
 
-    const p = smooth(
-      (t - 1.4) / 0.6
-    );
+    const p = ease((t - 1.4) / 0.6);
 
-    pack.position.y =
-      -0.3 - p * 0.6;
+    pack.position.y = -0.3 - p * 0.6;
 
     rightHand.position.set(
       0.42 - p * 0.35,
@@ -1588,161 +1607,111 @@ function updateIntro(dt) {
     );
 
     chewGum.visible = true;
-
     chewGum.scale.setScalar(
       1 + Math.sin(t * 26) * 0.12
     );
-
-    chewGum.position.y =
-      -0.13 + p * 0.2;
+    chewGum.position.y = -0.13 + p * 0.2;
   }
 
-  // AUTOMATIC WALK TO BALCONY EDGE
-
   else if (t < 3.5) {
-    message('TO THE BALCONY…');
+    message("TO THE BALCONY...");
 
     hands.visible = false;
 
-    const p = smooth(
-      (t - 2) / 1.5
-    );
+    const p = ease((t - 2) / 1.5);
 
-    camera.position.z =
-      THREE.MathUtils.lerp(
-        START_Z,
-        EDGE_Z,
-        p
-      );
+    camera.position.z = lerp(
+      START_Z, EDGE_Z, p
+    );
 
     camera.position.y =
       height +
       Math.sin((t - 2) * 17) *
       0.038 * (1 - p);
 
-    pitch = THREE.MathUtils.lerp(
-      -0.16,
-      -0.48,
-      p
-    );
-
-    angles();
+    pitch = lerp(-0.16, -0.48, p);
+    applyAngles();
   }
-
-  // LOOK DOWN
 
   else if (t < 4.0) {
-    message('THERE IT IS…');
+    message("THERE IT IS...");
 
-    camera.position.set(
-      0,
-      height,
-      EDGE_Z
-    );
+    camera.position.set(0, height, EDGE_Z);
 
     const aim = targetAngles();
+    const p = ease((t - 3.5) / 0.5);
 
-    const p = smooth(
-      (t - 3.5) / 0.5
-    );
+    yaw = lerp(0, aim.yaw, p);
+    pitch = lerp(-0.48, aim.pitch, p);
 
-    yaw = THREE.MathUtils.lerp(
-      0,
-      aim.yaw,
-      p
-    );
-
-    pitch = THREE.MathUtils.lerp(
-      -0.48,
-      aim.pitch,
-      p
-    );
-
-    angles();
+    applyAngles();
   }
 
-  // AIMING MODE
-
   else {
-    camera.position.set(
-      0,
-      height,
-      EDGE_Z
-    );
+    camera.position.set(0, height, EDGE_Z);
 
     const aim = targetAngles();
 
     yaw = aim.yaw;
     pitch = aim.pitch;
+    applyAngles();
 
-    angles();
+    state = "aiming";
 
-    state = 'aiming';
+    $("crosshair").classList.remove("hidden");
+    $("powerHud").classList.remove("hidden");
 
-    $('crosshair').classList.remove('hidden');
-    $('powerHud').classList.remove('hidden');
-
-    message(
-      'CLICK TO AIM · THEN CLICK TO SPIT'
-    );
+    message("CLICK TO AIM · THEN CLICK TO SPIT");
   }
 }
 
-// ======================================
-// CONTROLS
-// ======================================
+// ============================================
+// AIMING CONTROLS
+// ============================================
 
 function lockMouse() {
-  if (
-    document.pointerLockElement ===
-    renderer.domElement
-  ) return;
+  if (document.pointerLockElement === renderer.domElement) {
+    return;
+  }
 
-  renderer.domElement
-    .requestPointerLock?.()
-    ?.catch?.(() => {});
+  const request = renderer.domElement.requestPointerLock?.();
+
+  if (request && typeof request.catch === "function") {
+    request.catch(() => {});
+  }
 }
 
-document.addEventListener(
-  'pointerlockchange',
-  () => {
-    locked =
-      document.pointerLockElement ===
-      renderer.domElement;
+document.addEventListener("pointerlockchange", () => {
+  locked =
+    document.pointerLockElement === renderer.domElement;
 
-    if (state === 'aiming' && !locked) {
-      message(
-        'CLICK TO AIM · THEN CLICK TO SPIT'
-      );
-    }
+  if (state === "aiming" && !locked) {
+    message("CLICK TO AIM · THEN CLICK TO SPIT");
   }
-);
+});
+
+document.addEventListener("mousemove", e => {
+  if (!locked || state !== "aiming") return;
+
+  yaw = THREE.MathUtils.clamp(
+    yaw - e.movementX * 0.0022,
+    -1.35,
+    1.35
+  );
+
+  pitch = THREE.MathUtils.clamp(
+    pitch - e.movementY * 0.0022,
+    -1.54,
+    0.35
+  );
+
+  applyAngles();
+});
 
 document.addEventListener(
-  'mousemove',
+  "wheel",
   e => {
-    if (!locked || state !== 'aiming') return;
-
-    yaw = THREE.MathUtils.clamp(
-      yaw - e.movementX * 0.0022,
-      -1.35,
-      1.35
-    );
-
-    pitch = THREE.MathUtils.clamp(
-      pitch - e.movementY * 0.0022,
-      -1.54,
-      0.35
-    );
-
-    angles();
-  }
-);
-
-document.addEventListener(
-  'wheel',
-  e => {
-    if (state !== 'aiming') return;
+    if (state !== "aiming") return;
 
     power = THREE.MathUtils.clamp(
       power + (e.deltaY > 0 ? -3 : 3),
@@ -1755,160 +1724,126 @@ document.addEventListener(
   { passive: true }
 );
 
-document.addEventListener(
-  'keydown',
-  e => {
-    if (state !== 'aiming') return;
+document.addEventListener("keydown", e => {
+  if (state !== "aiming") return;
 
-    if ([
-      'Space',
-      'ArrowUp',
-      'ArrowDown',
-      'ArrowLeft',
-      'ArrowRight'
-    ].includes(e.code)) {
-      e.preventDefault();
-    }
-
-    if (e.code === 'Space') {
-      spit();
-    }
-
-    if (e.code === 'KeyW') {
-      power = Math.min(100, power + 3);
-    }
-
-    if (e.code === 'KeyS') {
-      power = Math.max(10, power - 3);
-    }
-
-    if (e.code === 'ArrowLeft') yaw += 0.035;
-    if (e.code === 'ArrowRight') yaw -= 0.035;
-    if (e.code === 'ArrowUp') pitch += 0.035;
-    if (e.code === 'ArrowDown') pitch -= 0.035;
-
-    pitch = THREE.MathUtils.clamp(
-      pitch,
-      -1.54,
-      0.35
-    );
-
-    angles();
-    updateHud();
+  if ([
+    "Space",
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight"
+  ].includes(e.code)) {
+    e.preventDefault();
   }
-);
 
-renderer.domElement.addEventListener(
-  'mousedown',
-  e => {
-    if (
-      e.button !== 0 ||
-      state !== 'aiming'
-    ) return;
+  if (e.code === "Space") spit();
 
-    if (!locked) {
-      lockMouse();
-
-      message(
-        'MOUSE TO AIM · CLICK TO SPIT'
-      );
-    } else {
-      spit();
-    }
+  if (e.code === "KeyW") {
+    power = Math.min(100, power + 3);
   }
-);
 
-// ======================================
+  if (e.code === "KeyS") {
+    power = Math.max(10, power - 3);
+  }
+
+  if (e.code === "ArrowLeft") yaw += 0.035;
+  if (e.code === "ArrowRight") yaw -= 0.035;
+  if (e.code === "ArrowUp") pitch += 0.035;
+  if (e.code === "ArrowDown") pitch -= 0.035;
+
+  pitch = THREE.MathUtils.clamp(
+    pitch, -1.54, 0.35
+  );
+
+  applyAngles();
+  updateHud();
+});
+
+renderer.domElement.addEventListener("mousedown", e => {
+  if (e.button !== 0 || state !== "aiming") return;
+
+  if (!locked) {
+    lockMouse();
+    message("MOUSE TO AIM · CLICK TO SPIT");
+  } else {
+    spit();
+  }
+});
+
+// ============================================
 // GUM PROJECTILE
-// ======================================
+// ============================================
 
 function spit() {
-  if (state !== 'aiming') return;
+  if (state !== "aiming") return;
 
-  state = 'flying';
+  state = "flying";
   flightTime = 0;
 
-  const d = new THREE.Vector3();
-  camera.getWorldDirection(d);
+  const direction = new THREE.Vector3();
+  camera.getWorldDirection(direction);
 
-  velocity.copy(d).multiplyScalar(
+  velocity.copy(direction).multiplyScalar(
     5 + power * 0.24
   );
 
   projectile = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(0.14, 1),
-    M.pink
+    new THREE.SphereGeometry(0.14, 12, 10),
+    M.gum
   );
 
-  projectile.scale.set(
-    1.2,
-    0.65,
-    0.95
-  );
+  projectile.scale.set(1.2, 0.65, 0.95);
 
   projectile.position
     .copy(camera.position)
-    .addScaledVector(d, 0.75);
+    .addScaledVector(direction, 0.75);
 
   projectile.position.y -= 0.12;
   projectile.castShadow = true;
 
   scene.add(projectile);
 
-  message('BON VOYAGE, GUM!');
+  message("BON VOYAGE, GUM!");
 }
 
-// ======================================
-// GUM PHYSICS
-// ======================================
+// ============================================
+// PROJECTILE PHYSICS
+// ============================================
 
 function updateFlight(dt) {
-  if (
-    state !== 'flying' ||
-    !projectile
-  ) return;
+  if (state !== "flying" || !projectile) return;
 
   flightTime += dt;
+  previous.copy(projectile.position);
 
-  previous.copy(
-    projectile.position
-  );
-
-  // Gravity
   velocity.y -= 9.81 * dt;
-
-  // Wind
   velocity.x += wind * dt;
 
   projectile.position.addScaledVector(
-    velocity,
-    dt
+    velocity, dt
   );
 
   projectile.rotation.x += dt * 6;
   projectile.rotation.z += dt * 4;
 
-  const y = 1.38;
+  const openingHeight = target.y + 1.38;
 
   if (
-    previous.y > y &&
-    projectile.position.y <= y &&
+    previous.y > openingHeight &&
+    projectile.position.y <= openingHeight &&
     velocity.y < 0
   ) {
-    const p =
-      (previous.y - y) /
+    const t =
+      (previous.y - openingHeight) /
       (previous.y - projectile.position.y);
 
-    const x = THREE.MathUtils.lerp(
-      previous.x,
-      projectile.position.x,
-      p
+    const x = lerp(
+      previous.x, projectile.position.x, t
     );
 
-    const z = THREE.MathUtils.lerp(
-      previous.z,
-      projectile.position.z,
-      p
+    const z = lerp(
+      previous.z, projectile.position.z, t
     );
 
     if (
@@ -1923,160 +1858,120 @@ function updateFlight(dt) {
   }
 
   if (
-    projectile.position.y <= 0 ||
+    projectile.position.y <= 0.34 ||
     flightTime > 12
   ) {
     finish(false);
   }
 }
 
-// ======================================
+// ============================================
 // RESULTS
-// ======================================
+// ============================================
 
 function finish(hit) {
-  state = hit ? 'success' : 'miss';
+  state = hit ? "success" : "miss";
 
-  if (
-    document.pointerLockElement ===
-    renderer.domElement
-  ) {
+  if (document.pointerLockElement === renderer.domElement) {
     document.exitPointerLock();
   }
 
-  if (hit) {
-    score += floor * 100;
-  } else {
-    misses++;
-  }
+  if (hit) score += floor * 100;
 
   updateHud();
 
-  $('resultEyebrow').textContent =
-    hit
-      ? 'ABSOLUTE LEGEND'
-      : 'SO CLOSE (MAYBE)';
+  $("resultEyebrow").textContent =
+    hit ? "ABSOLUTE LEGEND" : "SO CLOSE (MAYBE)";
 
-  $('resultTitle').textContent =
-    hit
-      ? 'DIRECT HIT!'
-      : 'SPLAT!';
+  $("resultTitle").textContent =
+    hit ? "DIRECT HIT!" : "SPLAT!";
 
-  $('resultDescription').textContent =
+  $("resultDescription").textContent =
     hit
       ? `+${floor * 100} points! The next balcony is higher.`
-      : 'Missed the can. Adjust your angle and power.';
+      : "Missed the can. Adjust your angle and power.";
 
-  $('resultButton').textContent =
-    hit
-      ? 'NEXT FLOOR'
-      : 'TRY AGAIN';
+  $("resultButton").textContent =
+    hit ? "NEXT FLOOR" : "TRY AGAIN";
 
-  $('resultScreen').classList.remove(
-    'hidden'
-  );
+  $("resultScreen").classList.remove("hidden");
 }
 
-// NEXT FLOOR OR RETRY
+$("resultButton").addEventListener("click", () => {
+  $("resultScreen").classList.add("hidden");
 
-$('resultButton').addEventListener(
-  'click',
-  () => {
-    $('resultScreen').classList.add(
-      'hidden'
-    );
-
-    if (state === 'success') {
-      floor++;
-      resetLevel();
-      return;
-    }
-
-    if (state === 'miss') {
-      if (projectile) {
-        scene.remove(projectile);
-        projectile.geometry.dispose();
-        projectile = null;
-      }
-
-      state = 'aiming';
-
-      message(
-        'CLICK TO AIM · THEN CLICK TO SPIT'
-      );
-    }
+  if (state === "success") {
+    floor++;
+    resetLevel();
+    return;
   }
-);
 
-// ======================================
-// ANIMATION LOOP
-// ======================================
+  if (state === "miss") {
+    if (projectile) {
+      scene.remove(projectile);
+      projectile.geometry.dispose();
+      projectile = null;
+    }
+
+    state = "aiming";
+    message("CLICK TO AIM · THEN CLICK TO SPIT");
+  }
+});
+
+// ============================================
+// MAIN ANIMATION LOOP
+// ============================================
 
 const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
 
-  const dt = Math.min(
-    clock.getDelta(),
-    0.033
-  );
+  const dt = Math.min(clock.getDelta(), 0.033);
 
   updateIntro(dt);
   updateFlight(dt);
-
-  // Animate all pedestrians continuously.
   updatePedestrians(dt);
+  updateCars(dt);
 
-  const ring = trash.getObjectByName(
-    'targetRing'
-  );
+  const ring = bin.getObjectByName("targetRing");
 
   if (ring) {
     ring.position.y =
       1.72 +
-      Math.sin(
-        clock.elapsedTime * 2.2
-      ) * 0.09;
+      Math.sin(clock.elapsedTime * 2.2) * 0.09;
   }
 
   renderer.render(scene, camera);
 }
 
-// ======================================
-// WINDOW RESIZE
-// ======================================
+// ============================================
+// RESIZE
+// ============================================
 
-window.addEventListener(
-  'resize',
-  () => {
-    camera.aspect =
-      innerWidth / innerHeight;
+window.addEventListener("resize", () => {
+  camera.aspect =
+    window.innerWidth / window.innerHeight;
 
-    camera.updateProjectionMatrix();
+  camera.updateProjectionMatrix();
 
-    renderer.setSize(
-      innerWidth,
-      innerHeight
-    );
-  }
-);
+  renderer.setSize(
+    window.innerWidth,
+    window.innerHeight
+  );
+});
 
-// ======================================
-// INITIALIZE GAME
-// ======================================
+// ============================================
+// INITIALIZE
+// ============================================
 
 makeCity();
 makePedestrians();
 
 height = 12;
-target.set(0, 0, -13);
+target.set(0, 0.34, -13);
 
-camera.position.set(
-  0,
-  height,
-  START_Z
-);
+camera.position.set(0, height, START_Z);
 
 makeBalcony();
 makeTrash();
@@ -2087,9 +1982,9 @@ hands.visible = false;
 yaw = 0;
 pitch = -0.16;
 
-angles();
+applyAngles();
 updateHud();
 
-state = 'idle';
+state = "idle";
 
 animate();
