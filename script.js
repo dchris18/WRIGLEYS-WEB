@@ -2,15 +2,21 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 
-// ============================================
-// GUM SPIT V5 — MINIATURE CITY
-// ============================================
+// ==================================================
+// GUM SPIT V6 — MINIATURE CITY + THREE SHOT SYSTEM
+// ==================================================
 
 const $ = id => document.getElementById(id);
+const clamp = THREE.MathUtils.clamp;
+const mix = THREE.MathUtils.lerp;
+const smooth = t => {
+  t = clamp(t, 0, 1);
+  return t * t * (3 - 2 * t);
+};
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("#8bbfba");
-scene.fog = new THREE.Fog("#8bbfba", 105, 265);
+scene.fog = new THREE.Fog("#8bbfba", 105, 260);
 
 const camera = new THREE.PerspectiveCamera(
   76,
@@ -18,7 +24,6 @@ const camera = new THREE.PerspectiveCamera(
   0.04,
   500
 );
-
 camera.rotation.order = "YXZ";
 
 const renderer = new THREE.WebGLRenderer({
@@ -27,7 +32,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -36,119 +41,101 @@ renderer.toneMappingExposure = 1.45;
 
 $("game").appendChild(renderer.domElement);
 
-// ============================================
+// ==================================================
 // LIGHTING
-// ============================================
+// ==================================================
 
 scene.add(
-  new THREE.HemisphereLight(
-    0xfff4db,
-    0x668e83,
-    2.6
-  )
+  new THREE.HemisphereLight(0xfff4db, 0x668e83, 2.6)
 );
 
-const sun = new THREE.DirectionalLight(
-  0xffe3b7,
-  3.2
-);
-
+const sun = new THREE.DirectionalLight(0xffe3b7, 3.2);
 sun.position.set(-35, 65, -28);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -85;
-sun.shadow.camera.right = 85;
-sun.shadow.camera.top = 85;
-sun.shadow.camera.bottom = -85;
+sun.shadow.camera.left = -90;
+sun.shadow.camera.right = 90;
+sun.shadow.camera.top = 90;
+sun.shadow.camera.bottom = -90;
 sun.shadow.camera.near = 1;
 sun.shadow.camera.far = 180;
-sun.shadow.bias = -0.0002;
 sun.shadow.normalBias = 0.035;
 sun.shadow.radius = 3;
-
 scene.add(sun);
 
-// ============================================
+// ==================================================
 // MATERIALS
-// ============================================
+// ==================================================
 
-function material(color, roughness = 0.88) {
-  return new THREE.MeshStandardMaterial({
+const mat = (color, roughness = 0.88) =>
+  new THREE.MeshStandardMaterial({
     color,
     roughness,
     metalness: 0
   });
-}
 
 const M = {
-  grass: material("#9ed46c"),
-  grassLight: material("#b4dd7f"),
-  grassDark: material("#78b568"),
-  road: material("#777476"),
-  roadDark: material("#66666c"),
-  sidewalk: material("#e4e4c9"),
-  curb: material("#c5c8ad"),
-  white: material("#fff1d9"),
-  cream: material("#f1dec0"),
-  tan: material("#dfb78a"),
-  peach: material("#edba92"),
-  coral: material("#d97f65"),
-  red: material("#e65f54"),
-  yellow: material("#f2ca72"),
-  teal: material("#39b9a7"),
-  turquoise: material("#1dd1bd"),
-  blue: material("#6e9bb3"),
-  darkBlue: material("#3e617a"),
-  lavender: material("#b6a6c7"),
-  roof: material("#a76e58"),
-  roofDark: material("#715e67"),
-  glass: material("#76b3b7", 0.35),
-  glassLight: material("#c1e4d6", 0.35),
-  windowDark: material("#3b6c75"),
-  tree: material("#4b9c56"),
-  treeLight: material("#80c46a"),
-  treeDark: material("#377c4b"),
-  trunk: material("#9c7653"),
-  metal: material("#617a7b", 0.55),
-  metalLight: material("#b3c1b6", 0.55),
-  tire: material("#354449"),
-  skin: material("#e4af8d"),
-  gum: material("#ee8f9b"),
-  gumWrapper: material("#f9edcb"),
-  gumGreen: material("#61b48b"),
-  shadow: material("#556a60")
+  grass: mat("#9ed46c"),
+  grassLight: mat("#b4dd7f"),
+  grassDark: mat("#78b568"),
+  road: mat("#777476"),
+  sidewalk: mat("#e4e4c9"),
+  curb: mat("#c5c8ad"),
+  white: mat("#fff1d9"),
+  cream: mat("#f1dec0"),
+  tan: mat("#dfb78a"),
+  peach: mat("#edba92"),
+  coral: mat("#d97f65"),
+  red: mat("#e65f54"),
+  yellow: mat("#f2ca72"),
+  teal: mat("#39b9a7"),
+  turquoise: mat("#1dd1bd"),
+  blue: mat("#6e9bb3"),
+  darkBlue: mat("#3e617a"),
+  lavender: mat("#b6a6c7"),
+  roof: mat("#a76e58"),
+  glass: mat("#76b3b7", 0.35),
+  glassLight: mat("#c1e4d6", 0.35),
+  windowDark: mat("#3b6c75"),
+  tree: mat("#4b9c56"),
+  treeLight: mat("#80c46a"),
+  treeDark: mat("#377c4b"),
+  trunk: mat("#9c7653"),
+  metal: mat("#617a7b"),
+  metalLight: mat("#b3c1b6"),
+  tire: mat("#354449"),
+  skin: mat("#e4af8d"),
+  gum: mat("#ee8f9b"),
+  gumWrapper: mat("#f9edcb"),
+  gumGreen: mat("#61b48b")
 };
 
-const peopleShirts = [
-  material("#ee9588"),
-  material("#e6c16f"),
-  material("#8facc8"),
-  material("#9cba89"),
-  material("#b4a2c7"),
-  material("#db9e6c")
+const shirts = [
+  M.coral, M.yellow, M.blue,
+  M.treeLight, M.lavender, M.peach
 ];
 
-const peopleSkin = [
-  material("#f1c9a8"),
-  material("#dfa784"),
-  material("#bd8065"),
-  material("#8b5a49")
+const skins = [
+  mat("#f1c9a8"),
+  mat("#dfa784"),
+  mat("#bd8065"),
+  mat("#8b5a49")
 ];
 
-const peopleHair = [
-  material("#423935"),
-  material("#805941"),
-  material("#b58a56"),
-  material("#3b4c55")
+const hairs = [
+  mat("#423935"),
+  mat("#805941"),
+  mat("#b58a56"),
+  mat("#3b4c55")
 ];
 
-// ============================================
-// SHAPE HELPERS
-// ============================================
+// ==================================================
+// GEOMETRY HELPERS
+// ==================================================
 
-const boxCache = new Map();
+const geometryCache = new Map();
 
-function boxGeometry(w, h, d, radius = 0.1) {
+function rounded(w, h, d, radius = 0.1) {
   const r = Math.min(
     radius,
     w * 0.45,
@@ -156,100 +143,85 @@ function boxGeometry(w, h, d, radius = 0.1) {
     d * 0.45
   );
 
-  const key = [w, h, d, r].join(":");
+  const key = `${w}:${h}:${d}:${r}`;
 
-  if (!boxCache.has(key)) {
-    boxCache.set(
+  if (!geometryCache.has(key)) {
+    geometryCache.set(
       key,
       new RoundedBoxGeometry(w, h, d, 3, r)
     );
   }
 
-  return boxCache.get(key);
+  return geometryCache.get(key);
 }
 
 function box(
-  parent,
-  w, h, d,
-  mat,
-  x = 0, y = 0, z = 0,
-  radius = 0.1
+  parent, w, h, d, material,
+  x = 0, y = 0, z = 0, radius = 0.1
 ) {
   const mesh = new THREE.Mesh(
-    boxGeometry(w, h, d, radius),
-    mat
+    rounded(w, h, d, radius),
+    material
   );
 
   mesh.position.set(x, y, z);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   parent.add(mesh);
-
   return mesh;
 }
 
 function cylinder(
-  parent,
-  rt, rb, h,
-  mat,
-  x = 0, y = 0, z = 0,
-  sides = 12
+  parent, rt, rb, h, material,
+  x = 0, y = 0, z = 0, sides = 12
 ) {
   const mesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(
-      rt, rb, h, sides
-    ),
-    mat
+    new THREE.CylinderGeometry(rt, rb, h, sides),
+    material
   );
 
   mesh.position.set(x, y, z);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   parent.add(mesh);
-
   return mesh;
 }
 
 function sphere(
-  parent,
-  radius,
-  mat,
+  parent, r, material,
   x = 0, y = 0, z = 0
 ) {
   const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(radius, 16, 12),
-    mat
+    new THREE.SphereGeometry(r, 16, 12),
+    material
   );
 
   mesh.position.set(x, y, z);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   parent.add(mesh);
-
   return mesh;
 }
 
 function cone(
-  parent,
-  radius,
-  height,
-  mat,
-  x = 0, y = 0, z = 0,
-  sides = 5
+  parent, radius, height, material,
+  x = 0, y = 0, z = 0
 ) {
   const mesh = new THREE.Mesh(
-    new THREE.ConeGeometry(
-      radius, height, sides
-    ),
-    mat
+    new THREE.ConeGeometry(radius, height, 5),
+    material
   );
 
   mesh.position.set(x, y, z);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   parent.add(mesh);
-
   return mesh;
+}
+
+function seeded(n) {
+  const x = Math.sin(n * 127.1 + 78.233) * 43758.5453;
+  return x - Math.floor(x);
 }
 
 function labelTexture(text, bg, fg) {
@@ -271,23 +243,9 @@ function labelTexture(text, bg, fg) {
   return texture;
 }
 
-function seeded(n) {
-  const x = Math.sin(n * 127.1 + 78.233) * 43758.5453;
-  return x - Math.floor(x);
-}
-
-function lerp(a, b, t) {
-  return THREE.MathUtils.lerp(a, b, t);
-}
-
-function ease(t) {
-  t = THREE.MathUtils.clamp(t, 0, 1);
-  return t * t * (3 - 2 * t);
-}
-
-// ============================================
+// ==================================================
 // WORLD GROUPS
-// ============================================
+// ==================================================
 
 const world = new THREE.Group();
 const balcony = new THREE.Group();
@@ -298,108 +256,63 @@ const hands = new THREE.Group();
 scene.add(world, balcony, bin, peopleGroup, camera);
 camera.add(hands);
 
-// ============================================
-// MINIATURE CITY ROADS
-// ============================================
+// ==================================================
+// CITY STREETS
+// ==================================================
 
 function road(x, z, w, d) {
-  box(
-    world, w, 0.12, d,
-    M.road, x, 0.02, z, 0.04
-  );
+  box(world, w, 0.12, d, M.road, x, 0.02, z);
 }
 
 function pavement(x, z, w, d) {
-  box(
-    world, w, 0.32, d,
-    M.sidewalk, x, 0.16, z, 0.06
-  );
+  box(world, w, 0.32, d, M.sidewalk, x, 0.16, z);
 }
 
-function grassPlot(x, z, w, d) {
-  box(
-    world, w, 0.36, d,
-    M.grassLight, x, 0.2, z, 0.04
-  );
+function grass(x, z, w, d) {
+  box(world, w, 0.36, d, M.grassLight, x, 0.2, z);
 }
 
-function roadStripe(x, z, w, d) {
-  box(
-    world, w, 0.025, d,
-    M.cream, x, 0.1, z, 0.015
-  );
+function stripe(x, z, w, d) {
+  box(world, w, 0.025, d, M.cream, x, 0.1, z);
 }
 
-function makeRoadNetwork() {
-  box(
-    world, 350, 0.4, 350,
-    M.grass, 0, -0.3, -65, 0.02
-  );
+function makeRoads() {
+  box(world, 350, 0.4, 350, M.grass, 0, -0.3, -65);
 
-  // Main road directly beneath balcony.
   road(0, -34, 190, 20);
-
-  // Further horizontal street.
   road(0, -84, 190, 17);
-
-  // Cross streets.
   road(-39, -65, 16, 100);
   road(39, -65, 16, 100);
 
-  // Near sidewalk.
   pavement(0, -17, 190, 14);
-
-  // Opposite sidewalk.
   pavement(0, -51, 190, 12);
 
-  // Far city blocks.
-  pavement(-64, -67, 34, 21);
-  pavement(0, -67, 53, 21);
-  pavement(64, -67, 34, 21);
-
-  pavement(-64, -104, 34, 20);
-  pavement(0, -104, 53, 20);
-  pavement(64, -104, 34, 20);
-
-  // Road center lines.
-  for (let x = -90; x <= 90; x += 12) {
-    roadStripe(x, -34, 5, 0.2);
-    roadStripe(x, -84, 5, 0.2);
+  for (const x of [-64, 0, 64]) {
+    pavement(x, -67, x === 0 ? 53 : 34, 21);
+    pavement(x, -104, x === 0 ? 53 : 34, 20);
   }
 
-  // Crosswalks at intersections.
+  for (let x = -90; x <= 90; x += 12) {
+    stripe(x, -34, 5, 0.2);
+    stripe(x, -84, 5, 0.2);
+  }
+
   for (const cx of [-39, 39]) {
     for (const cz of [-34, -84]) {
       for (let i = -3; i <= 3; i++) {
-        roadStripe(
-          cx + i * 1.25,
-          cz - 7.0,
-          0.7,
-          3.4
-        );
+        stripe(cx + i * 1.25, cz - 7, 0.7, 3.4);
       }
     }
   }
-
-  // Sidewalk divisions.
-  for (let x = -90; x <= 90; x += 6) {
-    box(
-      world,
-      0.045, 0.025, 13.5,
-      M.curb,
-      x, 0.34, -17
-    );
-  }
 }
 
-// ============================================
-// MINIATURE BUILDINGS
-// ============================================
+// ==================================================
+// BUILDINGS
+// ==================================================
 
 function building(
   x, z, w, d, h,
-  wall,
-  roof,
+  wall, roof,
   shop = false,
   seed = 0
 ) {
@@ -407,134 +320,93 @@ function building(
   g.position.set(x, 0.34, z);
   world.add(g);
 
+  box(g, w, h, d, wall, 0, h / 2, 0, 0.22);
   box(
-    g, w, h, d,
-    wall, 0, h / 2, 0, 0.22
+    g, w + 0.5, 0.42, d + 0.5,
+    roof, 0, h + 0.15, 0
   );
 
-  // Roof cap.
-  box(
-    g,
-    w + 0.5, 0.42, d + 0.5,
-    roof,
-    0, h + 0.15, 0,
-    0.12
-  );
-
-  // Rooftop utility boxes.
   if (h > 12) {
     box(
-      g,
-      2, 0.75, 1.8,
-      M.cream,
-      -w * 0.2, h + 0.7, 0
+      g, 2, 0.75, 1.8,
+      M.cream, -w * 0.2, h + 0.7, 0
     );
   }
 
-  // Windows facing the street (-Z).
   for (let y = 3.4; y < h - 1; y += 3.2) {
     for (
       let xx = -w / 2 + 1.7;
       xx <= w / 2 - 1.3;
       xx += 2.8
     ) {
-      const lit = seeded(seed + xx * 3 + y) > 0.72;
+      const lit =
+        seeded(seed + xx * 3 + y) > 0.72;
 
       box(
-        g,
-        1.25, 1.65, 0.12,
+        g, 1.25, 1.65, 0.12,
         lit ? M.yellow : M.windowDark,
-        xx, y, -d / 2 - 0.08,
-        0.05
+        xx, y, -d / 2 - 0.08
       );
 
       box(
-        g,
-        1.5, 0.17, 0.34,
+        g, 1.5, 0.17, 0.34,
         M.cream,
-        xx, y - 0.9,
-        -d / 2 - 0.2
+        xx, y - 0.9, -d / 2 - 0.2
       );
     }
   }
 
-  // Ground-floor shop.
   if (shop) {
     box(
-      g,
-      w - 1, 2.9, 0.18,
-      M.glass,
-      0, 1.7, -d / 2 - 0.12
+      g, w - 1, 2.9, 0.18,
+      M.glass, 0, 1.7, -d / 2 - 0.12
     );
 
     box(
-      g,
-      1.4, 2.6, 0.2,
-      M.darkBlue,
-      0, 1.45, -d / 2 - 0.26
+      g, 1.4, 2.6, 0.2,
+      M.darkBlue, 0, 1.45, -d / 2 - 0.26
     );
 
-    // Striped awning.
     const awning = new THREE.Group();
-    awning.position.set(0, 3.25, -d / 2 - 1.0);
+    awning.position.set(0, 3.25, -d / 2 - 1);
     g.add(awning);
 
     box(
-      awning,
-      w + 0.25, 0.22, 2.0,
-      M.cream,
-      0, 0, 0
+      awning, w + 0.25, 0.22, 2,
+      M.cream
     );
 
-    const stripeCount = Math.max(4, Math.round(w / 1.1));
-    const stripeWidth = w / stripeCount;
+    const count = Math.max(4, Math.round(w / 1.1));
+    const width = w / count;
 
-    for (let i = 0; i < stripeCount; i++) {
-      if (i % 2 === 0) {
-        box(
-          awning,
-          stripeWidth, 0.24, 2.02,
-          roof,
-          -w / 2 + stripeWidth * (i + 0.5),
-          0.015, 0
-        );
-      }
+    for (let i = 0; i < count; i += 2) {
+      box(
+        awning, width, 0.24, 2.02,
+        roof,
+        -w / 2 + width * (i + 0.5),
+        0.015, 0
+      );
     }
 
     box(
-      g,
-      w - 0.8, 0.62, 0.22,
-      roof,
-      0, 4.15, -d / 2 - 0.15
+      g, w - 0.8, 0.62, 0.22,
+      roof, 0, 4.15, -d / 2 - 0.15
     );
   } else {
-    // Front door.
     box(
-      g,
-      1.6, 2.5, 0.16,
-      M.darkBlue,
-      0, 1.32, -d / 2 - 0.14
-    );
-
-    sphere(
-      g,
-      0.1,
-      M.yellow,
-      0.5, 1.35, -d / 2 - 0.28
+      g, 1.6, 2.5, 0.16,
+      M.darkBlue, 0, 1.32, -d / 2 - 0.14
     );
   }
-
-  return g;
 }
 
-function house(x, z, color, seed = 0) {
+function house(x, z, color) {
   const g = new THREE.Group();
   g.position.set(x, 0.34, z);
   world.add(g);
 
   box(g, 8, 5.8, 7, color, 0, 2.9, 0);
 
-  // Pitched roof.
   const roof = new THREE.Mesh(
     new THREE.ConeGeometry(6.2, 3.2, 4),
     M.roof
@@ -547,27 +419,21 @@ function house(x, z, color, seed = 0) {
   g.add(roof);
 
   box(
-    g,
-    1.7, 2.5, 0.14,
-    M.darkBlue,
-    0, 1.35, -3.58
+    g, 1.7, 2.5, 0.14,
+    M.darkBlue, 0, 1.35, -3.58
   );
 
   for (const xx of [-2.3, 2.3]) {
     box(
-      g,
-      1.25, 1.4, 0.15,
-      M.glassLight,
-      xx, 3.65, -3.58
+      g, 1.25, 1.4, 0.15,
+      M.glassLight, xx, 3.65, -3.58
     );
   }
-
-  return g;
 }
 
-// ============================================
-// PARKS, TREES, FOUNTAINS
-// ============================================
+// ==================================================
+// TREES, PARKS AND DECORATIONS
+// ==================================================
 
 function tree(x, z, scale = 1) {
   const g = new THREE.Group();
@@ -575,28 +441,10 @@ function tree(x, z, scale = 1) {
   g.scale.setScalar(scale);
   world.add(g);
 
-  cylinder(
-    g, 0.24, 0.32, 2.0,
-    M.trunk, 0, 1.0, 0, 8
-  );
-
-  cone(
-    g, 1.4, 3.2,
-    M.treeDark,
-    0, 3.1, 0, 5
-  );
-
-  cone(
-    g, 1.12, 2.7,
-    M.tree,
-    0, 4.0, 0, 5
-  );
-
-  cone(
-    g, 0.8, 2.2,
-    M.treeLight,
-    0, 4.8, 0, 5
-  );
+  cylinder(g, 0.24, 0.32, 2, M.trunk, 0, 1, 0);
+  cone(g, 1.4, 3.2, M.treeDark, 0, 3.1, 0);
+  cone(g, 1.12, 2.7, M.tree, 0, 4, 0);
+  cone(g, 0.8, 2.2, M.treeLight, 0, 4.8, 0);
 }
 
 function bush(x, z, scale = 1) {
@@ -607,8 +455,7 @@ function bush(x, z, scale = 1) {
 
   for (let i = 0; i < 3; i++) {
     box(
-      g,
-      0.9, 0.85, 0.9,
+      g, 0.9, 0.85, 0.9,
       i % 2 ? M.tree : M.treeDark,
       (i - 1) * 0.65,
       0.3 + (i % 2) * 0.2,
@@ -624,19 +471,10 @@ function bench(x, z, rotation = 0) {
   world.add(g);
 
   box(g, 2.6, 0.18, 0.75, M.roof, 0, 0.75, 0);
+  box(g, 2.6, 0.85, 0.16, M.roof, 0, 1.23, 0.32);
 
-  box(
-    g, 2.6, 0.85, 0.16,
-    M.roof,
-    0, 1.23, 0.32
-  );
-
-  for (const xx of [-1.0, 1.0]) {
-    box(
-      g, 0.13, 0.7, 0.13,
-      M.metal,
-      xx, 0.35, 0
-    );
+  for (const xx of [-1, 1]) {
+    box(g, 0.13, 0.7, 0.13, M.metal, xx, 0.35, 0);
   }
 }
 
@@ -645,46 +483,16 @@ function fountain(x, z) {
   g.position.set(x, 0.36, z);
   world.add(g);
 
-  box(
-    g,
-    10, 1.2, 10,
-    M.cream,
-    0, 0.6, 0
-  );
+  box(g, 10, 1.2, 10, M.cream, 0, 0.6, 0);
+  box(g, 8.3, 0.08, 8.3, M.turquoise, 0, 1.23, 0);
 
-  box(
-    g,
-    8.3, 0.08, 8.3,
-    M.turquoise,
-    0, 1.23, 0
-  );
-
-  cylinder(
-    g,
-    0.7, 0.9, 1.8,
-    M.white,
-    0, 2.1, 0,
-    10
-  );
-
-  cylinder(
-    g,
-    1.45, 1.15, 0.4,
-    M.white,
-    0, 3.05, 0,
-    12
-  );
-
-  sphere(
-    g,
-    0.45,
-    M.turquoise,
-    0, 3.45, 0
-  );
+  cylinder(g, 0.7, 0.9, 1.8, M.white, 0, 2.1, 0);
+  cylinder(g, 1.45, 1.15, 0.4, M.white, 0, 3.05, 0);
+  sphere(g, 0.45, M.turquoise, 0, 3.45, 0);
 }
 
-function park(x, z, w, d, type = "garden") {
-  grassPlot(x, z, w, d);
+function park(x, z, w, d, type) {
+  grass(x, z, w, d);
 
   if (type === "fountain") {
     fountain(x, z);
@@ -701,70 +509,54 @@ function park(x, z, w, d, type = "garden") {
 
   if (type === "garden") {
     for (let i = 0; i < 6; i++) {
-      const xx = x - w / 2 + 3 + i * (w - 6) / 5;
+      const xx =
+        x - w / 2 + 3 + i * (w - 6) / 5;
 
       if (i % 2 === 0) {
         tree(xx, z - 2, 0.75);
       } else {
-        bush(xx, z + 2, 1.0);
+        bush(xx, z + 2);
       }
     }
 
-    bench(x, z, 0);
+    bench(x, z);
   }
 
   if (type === "playground") {
-    // Sandbox.
-    box(
-      world,
-      6, 0.3, 5,
-      M.yellow,
-      x - 4, 0.55, z
-    );
+    box(world, 6, 0.3, 5, M.yellow, x - 4, 0.55, z);
 
-    // Slide.
     box(
-      world,
-      1.6, 0.3, 4.8,
-      M.blue,
-      x + 4, 1.65, z
+      world, 1.6, 0.3, 4.8,
+      M.blue, x + 4, 1.65, z
     ).rotation.x = -0.45;
 
     box(
-      world,
-      2, 2.3, 2,
-      M.coral,
-      x + 4, 1.3, z + 2
+      world, 2, 2.3, 2,
+      M.coral, x + 4, 1.3, z + 2
     );
 
-    // Small climbing frame.
     for (const dx of [-1.4, 1.4]) {
-      for (const dz of [-1.0, 1.0]) {
+      for (const dz of [-1, 1]) {
         cylinder(
-          world,
-          0.12, 0.12, 2.8,
+          world, 0.12, 0.12, 2.8,
           M.roof,
-          x - 4 + dx,
-          1.8,
-          z + 6 + dz
+          x - 4 + dx, 1.8, z + 6 + dz
         );
       }
     }
 
     box(
-      world,
-      3.4, 0.2, 2.5,
-      M.roof,
-      x - 4, 3.25, z + 6
+      world, 3.4, 0.2, 2.5,
+      M.roof, x - 4, 3.25, z + 6
     );
 
     tree(x + w / 2 - 3, z - d / 2 + 3, 0.9);
   }
 }
 
-// ============================================
-// CARS
-// ============================================
+// ==================================================
+// TOY CARS
+// ==================================================
 
 const cars = [];
 
@@ -773,20 +565,12 @@ function car(x, z, color, direction = 1, moving = false) {
   g.position.set(x, 0.16, z);
   world.add(g);
 
-  box(
-    g, 4.2, 1.05, 2.1,
-    color, 0, 0.85, 0, 0.42
-  );
-
-  box(
-    g, 2.3, 1.1, 1.9,
-    color, -0.25, 1.6, 0, 0.4
-  );
+  box(g, 4.2, 1.05, 2.1, color, 0, 0.85, 0, 0.42);
+  box(g, 2.3, 1.1, 1.9, color, -0.25, 1.6, 0, 0.4);
 
   box(
     g, 1.5, 0.5, 0.06,
-    M.glassLight,
-    -0.2, 1.7, -0.98
+    M.glassLight, -0.2, 1.7, -0.98
   );
 
   for (const xx of [-1.35, 1.35]) {
@@ -797,10 +581,6 @@ function car(x, z, color, direction = 1, moving = false) {
       );
       wheel.rotation.x = Math.PI / 2;
     }
-  }
-
-  for (const xx of [-1.65, 1.65]) {
-    sphere(g, 0.16, M.yellow, xx, 0.98, -1.05);
   }
 
   g.rotation.y = direction < 0 ? Math.PI : 0;
@@ -823,14 +603,13 @@ function updateCars(dt) {
   }
 }
 
-// ============================================
-// COMPLETE CITY LAYOUT
-// ============================================
+// ==================================================
+// CITY LAYOUT
+// ==================================================
 
 function makeCity() {
-  makeRoadNetwork();
+  makeRoads();
 
-  // Building row opposite the balcony.
   building(-69, -59, 14, 12, 12, M.cream, M.red, true, 1);
   building(-52, -59, 14, 12, 18, M.peach, M.roof, false, 2);
   building(-18, -59, 15, 12, 16, M.tan, M.coral, true, 3);
@@ -838,13 +617,11 @@ function makeCity() {
   building(54, -59, 14, 12, 14, M.peach, M.red, true, 5);
   building(71, -59, 13, 12, 17, M.lavender, M.darkBlue, false, 6);
 
-  // Buildings behind the balcony, leaving the center clear.
   building(-65, 11, 15, 13, 19, M.cream, M.darkBlue, true, 10);
   building(-45, 11, 14, 13, 15, M.coral, M.red, true, 11);
   building(45, 11, 15, 13, 17, M.peach, M.roof, true, 12);
   building(65, 11, 15, 13, 21, M.cream, M.darkBlue, true, 13);
 
-  // More distant neighborhoods.
   building(-64, -104, 15, 12, 17, M.cream, M.red, true, 20);
   building(0, -104, 16, 12, 21, M.tan, M.roof, false, 21);
   building(64, -104, 15, 12, 19, M.blue, M.darkBlue, true, 22);
@@ -852,74 +629,61 @@ function makeCity() {
   house(-19, -104, M.cream);
   house(21, -104, M.peach);
 
-  // Green public spaces between city blocks.
   park(0, -68, 25, 18, "fountain");
   park(-64, -82, 25, 15, "garden");
   park(64, -82, 25, 15, "playground");
 
-  // A small landscaped plaza.
-  grassPlot(-19, -51, 14, 9);
-  grassPlot(19, -51, 14, 9);
+  grass(-19, -51, 14, 9);
+  grass(19, -51, 14, 9);
 
-  for (const xx of [-24, -14, 14, 24]) {
-    bush(xx, -50, 0.65);
+  for (const x of [-24, -14, 14, 24]) {
+    bush(x, -50, 0.65);
   }
 
-  // Street trees.
   for (let x = -84; x <= 84; x += 12) {
     if (Math.abs(x) < 10) continue;
     if (Math.abs(x - 39) < 9) continue;
     if (Math.abs(x + 39) < 9) continue;
-
     tree(x, -11.3, 0.78);
   }
 
-  // Benches on near sidewalk.
-  bench(-24, -19, 0);
-  bench(24, -19, 0);
+  bench(-24, -19);
+  bench(24, -19);
 
-  // Decorative planter boxes.
   for (const x of [-30, -15, 15, 30]) {
     box(
       world, 2.6, 0.75, 1.2,
-      M.cream,
-      x, 0.58, -21
+      M.cream, x, 0.58, -21
     );
-
     bush(x, -21, 0.75);
   }
 
-  // Streetlights.
   for (const x of [-31, 31]) {
     cylinder(
       world, 0.12, 0.14, 6.5,
-      M.metal,
-      x, 3.4, -24, 12
+      M.metal, x, 3.4, -24
     );
 
     box(
       world, 1.7, 0.2, 0.4,
-      M.metal,
-      x + 0.7, 6.65, -24
+      M.metal, x + 0.7, 6.65, -24
     );
 
     box(
-      world, 1.0, 0.06, 0.3,
-      M.yellow,
-      x + 0.75, 6.52, -24
+      world, 1, 0.06, 0.3,
+      M.yellow, x + 0.75, 6.52, -24
     );
   }
 
-  // Toy-like traffic.
   car(-70, -30, M.red, 1, true);
   car(24, -39, M.blue, -1, true);
   car(65, -30, M.yellow, 1, true);
   car(-20, -88, M.teal, -1, false);
 }
 
-// ============================================
-// PEDESTRIANS
-// ============================================
+// ==================================================
+// PEDESTRIANS WITH HIT REACTIONS
+// ==================================================
 
 const pedestrians = [];
 
@@ -928,9 +692,9 @@ function pedestrian(x, z, direction, speed, index) {
   g.position.set(x, 0.38, z);
   peopleGroup.add(g);
 
-  const shirt = peopleShirts[index % peopleShirts.length];
-  const skin = peopleSkin[index % peopleSkin.length];
-  const hair = peopleHair[index % peopleHair.length];
+  const shirt = shirts[index % shirts.length];
+  const skin = skins[index % skins.length];
+  const hair = hairs[index % hairs.length];
 
   const body = sphere(g, 0.46, shirt, 0, 1.2, 0);
   body.scale.set(0.9, 1.18, 0.72);
@@ -961,7 +725,7 @@ function pedestrian(x, z, direction, speed, index) {
 
     cylinder(
       arm, 0.10, 0.10, 0.38,
-      skin, side * 0.03, -0.5, 0, 10
+      skin, side * 0.03, -0.5, 0
     );
 
     sphere(
@@ -977,8 +741,7 @@ function pedestrian(x, z, direction, speed, index) {
 
     box(
       leg, 0.26, 0.7, 0.28,
-      M.darkBlue,
-      0, -0.35, 0
+      M.darkBlue, 0, -0.35, 0
     );
 
     const shoe = sphere(
@@ -1011,7 +774,10 @@ function pedestrian(x, z, direction, speed, index) {
     legs,
     direction,
     speed,
-    phase: seeded(index + 80) * Math.PI * 2
+    phase: seeded(index + 80) * Math.PI * 2,
+    reaction: 0,
+    hitCooldown: 0,
+    baseScale: g.scale.x
   });
 }
 
@@ -1039,6 +805,28 @@ function makePedestrians() {
 
 function updatePedestrians(dt) {
   for (const p of pedestrians) {
+    p.hitCooldown = Math.max(0, p.hitCooldown - dt);
+
+    if (p.reaction > 0) {
+      p.reaction = Math.max(0, p.reaction - dt);
+
+      const intensity = Math.sin(
+        (1 - p.reaction / 0.75) * Math.PI
+      );
+
+      p.arms[0].rotation.z = -2 * intensity;
+      p.arms[1].rotation.z = 2 * intensity;
+      p.g.rotation.z = Math.sin(p.reaction * 22) * 0.18;
+      p.g.position.y = 0.38 + intensity * 0.22;
+
+      if (p.reaction === 0) {
+        p.arms[0].rotation.z = 0;
+        p.arms[1].rotation.z = 0;
+      }
+
+      continue;
+    }
+
     p.phase += dt * p.speed * 5;
     p.g.position.x += p.direction * p.speed * dt;
 
@@ -1058,12 +846,16 @@ function updatePedestrians(dt) {
   }
 }
 
-// ============================================
+// ==================================================
 // GAME STATE
-// ============================================
+// ==================================================
+
+const MAX_SHOTS = 3;
+const PEDESTRIAN_PENALTY = 50;
 
 let floor = 1;
 let score = 0;
+let shotsLeft = MAX_SHOTS;
 let wind = 0;
 let power = 60;
 let height = 12;
@@ -1076,6 +868,7 @@ let locked = false;
 
 let projectile = null;
 let flightTime = 0;
+let shotResetTimer = 0;
 
 const velocity = new THREE.Vector3();
 const previous = new THREE.Vector3();
@@ -1092,180 +885,226 @@ let rightHand;
 let leftHand;
 let chewGum;
 
-// ============================================
+// ==================================================
+// NEW SHOT COUNTER HUD
+// ==================================================
+
+const shotHud = document.createElement("div");
+shotHud.id = "shotHud";
+
+shotHud.innerHTML = `
+  <div class="shot-label">GUM LEFT</div>
+  <div id="shotIcons"></div>
+`;
+
+$("hud").appendChild(shotHud);
+
+const extraStyles = document.createElement("style");
+extraStyles.textContent = `
+  #shotHud {
+    position: absolute;
+    top: 110px;
+    right: 24px;
+    padding: 12px 17px;
+    border-radius: 15px;
+    background: #293e45d9;
+    border: 1px solid #ffffff55;
+    color: white;
+    text-align: center;
+    backdrop-filter: blur(8px);
+  }
+
+  .shot-label {
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1.4px;
+    margin-bottom: 8px;
+  }
+
+  #shotIcons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+  }
+
+  .gum-icon {
+    width: 24px;
+    height: 12px;
+    border-radius: 5px;
+    background: #f4a0aa;
+    border: 2px solid #fff1d9;
+    transform: rotate(-18deg);
+    box-shadow: 0 2px 0 #a65c72;
+    transition: opacity .2s, transform .2s;
+  }
+
+  .gum-icon.used {
+    opacity: .2;
+    transform: rotate(15deg) scale(.8);
+  }
+
+  #scorePopup {
+    position: absolute;
+    top: 32%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 34px;
+    font-weight: 900;
+    color: #ff9d91;
+    text-shadow: 0 3px 8px #293e45;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+
+  #scorePopup.visible {
+    opacity: 1;
+  }
+
+  @media(max-width:600px) {
+    #shotHud {
+      top: 92px;
+      right: 12px;
+      padding: 9px 12px;
+    }
+
+    .gum-icon {
+      width: 19px;
+      height: 10px;
+    }
+  }
+`;
+
+document.head.appendChild(extraStyles);
+
+const scorePopup = document.createElement("div");
+scorePopup.id = "scorePopup";
+$("hud").appendChild(scorePopup);
+
+let popupTimer = 0;
+
+function showPopup(text) {
+  scorePopup.textContent = text;
+  scorePopup.classList.add("visible");
+  popupTimer = 1.1;
+}
+
+function updateShotHud() {
+  $("shotIcons").innerHTML = Array.from(
+    { length: MAX_SHOTS },
+    (_, i) =>
+      `<div class="gum-icon ${i >= shotsLeft ? "used" : ""}"></div>`
+  ).join("");
+}
+
+// ==================================================
 // BALCONY
-// ============================================
+// ==================================================
 
 function makeBalcony() {
   balcony.clear();
 
   const ground = height - 1.65;
 
-  // Apartment building behind the player.
   box(
-    balcony,
-    32, 100, 11,
-    M.peach,
-    0, ground - 14, 9.2,
-    0.2
-  );
-
-  // Balcony slab.
-  box(
-    balcony,
-    8.6, 0.32, 6.3,
-    M.sidewalk,
-    0, ground - 0.2, -1.05
+    balcony, 32, 100, 11,
+    M.peach, 0, ground - 14, 9.2
   );
 
   box(
-    balcony,
-    8.8, 0.15, 0.32,
-    M.cream,
-    0, ground - 0.08, -4.12
-  );
-
-  // Rounded railings.
-  box(
-    balcony,
-    8.6, 0.18, 0.16,
-    M.metal,
-    0, ground + 1.1, RAIL_Z
+    balcony, 8.6, 0.32, 6.3,
+    M.sidewalk, 0, ground - 0.2, -1.05
   );
 
   box(
-    balcony,
-    8.6, 0.1, 0.12,
-    M.metal,
-    0, ground + 0.45, RAIL_Z
+    balcony, 8.8, 0.15, 0.32,
+    M.cream, 0, ground - 0.08, -4.12
+  );
+
+  box(
+    balcony, 8.6, 0.18, 0.16,
+    M.metal, 0, ground + 1.1, RAIL_Z
+  );
+
+  box(
+    balcony, 8.6, 0.1, 0.12,
+    M.metal, 0, ground + 0.45, RAIL_Z
   );
 
   for (let x = -4.1; x <= 4.2; x += 0.65) {
     cylinder(
-      balcony,
-      0.055, 0.055, 1.15,
-      M.metal,
-      x, ground + 0.58, RAIL_Z,
-      10
+      balcony, 0.055, 0.055, 1.15,
+      M.metal, x, ground + 0.58, RAIL_Z
     );
   }
 
   for (const side of [-1, 1]) {
     box(
-      balcony,
-      0.16, 0.16, 6.3,
+      balcony, 0.16, 0.16, 6.3,
       M.metal,
-      side * 4.25,
-      ground + 1.1,
-      -1.05
+      side * 4.25, ground + 1.1, -1.05
     );
 
     for (let z = -3.9; z < 2; z += 0.75) {
       cylinder(
-        balcony,
-        0.055, 0.055, 1.15,
+        balcony, 0.055, 0.055, 1.15,
         M.metal,
-        side * 4.25,
-        ground + 0.58,
-        z,
-        10
+        side * 4.25, ground + 0.58, z
       );
     }
   }
 
-  // Apartment door.
   box(
-    balcony,
-    3.5, 4.5, 0.3,
-    M.cream,
-    0, ground + 2.15, 3.65
+    balcony, 3.5, 4.5, 0.3,
+    M.cream, 0, ground + 2.15, 3.65
   );
 
   box(
-    balcony,
-    2.7, 3.9, 0.08,
-    M.glass,
-    0, ground + 2.1, 3.47
+    balcony, 2.7, 3.9, 0.08,
+    M.glass, 0, ground + 2.1, 3.47
   );
 
   box(
-    balcony,
-    0.12, 3.9, 0.15,
-    M.white,
-    0, ground + 2.1, 3.38
+    balcony, 0.12, 3.9, 0.15,
+    M.white, 0, ground + 2.1, 3.38
   );
 
   sphere(
-    balcony,
-    0.1, M.yellow,
-    1.0, ground + 1.9, 3.3
+    balcony, 0.1, M.yellow,
+    1, ground + 1.9, 3.3
   );
 
-  // Little balcony table.
-  box(
-    balcony,
-    1.0, 0.12, 0.7,
-    M.cream,
-    -3.15, ground + 0.65, 0.3
-  );
-
-  for (const dx of [-0.37, 0.37]) {
-    for (const dz of [-0.24, 0.24]) {
-      cylinder(
-        balcony,
-        0.06, 0.06, 0.62,
-        M.trunk,
-        -3.15 + dx,
-        ground + 0.31,
-        0.3 + dz
-      );
-    }
-  }
-
-  // Potted plant.
   cylinder(
-    balcony,
-    0.44, 0.34, 0.55,
-    M.coral,
-    3.1, ground + 0.28, 0.6,
-    12
+    balcony, 0.44, 0.34, 0.55,
+    M.coral, 3.1, ground + 0.28, 0.6
   );
 
   sphere(
-    balcony,
-    0.55, M.treeLight,
+    balcony, 0.55, M.treeLight,
     3.1, ground + 0.86, 0.6
   );
 }
 
-// ============================================
+// ==================================================
 // TRASH CAN
-// ============================================
+// ==================================================
 
 function makeTrash() {
   bin.clear();
   bin.position.copy(target);
 
   cylinder(
-    bin,
-    0.73, 0.56, 1.35,
-    M.teal,
-    0, 0.675, 0,
-    32
+    bin, 0.73, 0.56, 1.35,
+    M.teal, 0, 0.675, 0, 32
   );
 
   cylinder(
-    bin,
-    0.6, 0.6, 0.035,
-    M.tire,
-    0, 1.37, 0,
-    32
+    bin, 0.6, 0.6, 0.035,
+    M.tire, 0, 1.37, 0, 32
   );
 
   const rim = new THREE.Mesh(
-    new THREE.TorusGeometry(
-      0.68, 0.075, 12, 40
-    ),
+    new THREE.TorusGeometry(0.68, 0.075, 12, 40),
     M.metalLight
   );
 
@@ -1277,8 +1116,7 @@ function makeTrash() {
     const a = i * Math.PI / 6;
 
     box(
-      bin,
-      0.045, 0.95, 0.045,
+      bin, 0.045, 0.95, 0.045,
       M.treeDark,
       Math.cos(a) * 0.6,
       0.67,
@@ -1287,9 +1125,7 @@ function makeTrash() {
   }
 
   const ring = new THREE.Mesh(
-    new THREE.TorusGeometry(
-      0.86, 0.035, 7, 32
-    ),
+    new THREE.TorusGeometry(0.86, 0.035, 7, 32),
     new THREE.MeshBasicMaterial({
       color: 0xffd780,
       transparent: true,
@@ -1301,26 +1137,11 @@ function makeTrash() {
   ring.position.y = 1.72;
   ring.name = "targetRing";
   bin.add(ring);
-
-  const sticker = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.62, 0.28),
-    new THREE.MeshBasicMaterial({
-      map: labelTexture(
-        "BIN",
-        "#f9edcb",
-        "#416f61"
-      ),
-      side: THREE.DoubleSide
-    })
-  );
-
-  sticker.position.set(0, 0.85, 0.61);
-  bin.add(sticker);
 }
 
-// ============================================
-// FIRST-PERSON HANDS AND GUM
-// ============================================
+// ==================================================
+// FIRST PERSON HANDS
+// ==================================================
 
 function makeHands() {
   hands.clear();
@@ -1329,47 +1150,30 @@ function makeHands() {
     const group = new THREE.Group();
 
     group.position.set(
-      side * 0.42,
-      -0.48,
-      -0.64
+      side * 0.42, -0.48, -0.64
     );
 
     hands.add(group);
 
     const arm = cylinder(
-      group,
-      0.12, 0.15, 0.42,
-      M.blue,
-      side * 0.03,
-      -0.27,
-      0,
-      12
+      group, 0.12, 0.15, 0.42,
+      M.blue, side * 0.03, -0.27, 0
     );
-
     arm.rotation.z = side * 0.25;
 
     const palm = sphere(
-      group,
-      0.16,
-      M.skin,
-      0, 0, 0
+      group, 0.16, M.skin, 0, 0, 0
     );
-
     palm.scale.set(0.9, 1.2, 0.55);
 
     for (let i = 0; i < 4; i++) {
-      const finger = cylinder(
+      cylinder(
         group,
-        0.035, 0.043,
-        0.18 - i * 0.012,
+        0.035, 0.043, 0.18 - i * 0.012,
         M.skin,
         side * 0.04 + (i - 1.5) * 0.075,
-        0.14,
-        -0.04,
-        8
+        0.14, -0.04
       );
-
-      finger.rotation.z = (i - 1.5) * 0.1;
     }
 
     return group;
@@ -1378,38 +1182,25 @@ function makeHands() {
   leftHand = hand(-1);
   rightHand = hand(1);
 
-  // Gum pack.
   pack = new THREE.Group();
   pack.position.set(-0.03, -0.3, -0.76);
   hands.add(pack);
 
+  box(pack, 0.74, 0.36, 0.16, M.gumWrapper);
   box(
-    pack,
-    0.74, 0.36, 0.16,
-    M.gumWrapper
+    pack, 0.75, 0.085, 0.17,
+    M.gumGreen, 0, 0.13, 0
   );
-
   box(
-    pack,
-    0.75, 0.085, 0.17,
-    M.gumGreen,
-    0, 0.13, 0
-  );
-
-  box(
-    pack,
-    0.75, 0.075, 0.17,
-    M.gumGreen,
-    0, -0.14, 0
+    pack, 0.75, 0.075, 0.17,
+    M.gumGreen, 0, -0.14, 0
   );
 
   const label = new THREE.Mesh(
     new THREE.PlaneGeometry(0.58, 0.18),
     new THREE.MeshBasicMaterial({
       map: labelTexture(
-        "GUM",
-        "#f9edcb",
-        "#416f61"
+        "GUM", "#f9edcb", "#416f61"
       )
     })
   );
@@ -1417,27 +1208,21 @@ function makeHands() {
   label.position.set(0, 0, 0.088);
   pack.add(label);
 
-  // Wrapper flap.
   flap = new THREE.Group();
   flap.position.set(0, 0.18, -0.04);
   pack.add(flap);
 
   box(
-    flap,
-    0.74, 0.19, 0.035,
-    M.gumWrapper,
-    0, 0.09, 0
+    flap, 0.74, 0.19, 0.035,
+    M.gumWrapper, 0, 0.09, 0
   );
 
-  // Wrapped sticks.
   for (let i = 0; i < 5; i++) {
     box(
-      pack,
-      0.105, 0.25, 0.04,
+      pack, 0.105, 0.25, 0.04,
       M.white,
       -0.25 + i * 0.125,
-      0.015,
-      -0.12
+      0.015, -0.12
     );
   }
 
@@ -1445,32 +1230,19 @@ function makeHands() {
   pack.add(stick);
   stick.position.set(0.1, 0.02, -0.18);
 
-  box(
-    stick,
-    0.115, 0.28, 0.05,
-    M.white
-  );
-
-  box(
-    stick,
-    0.115, 0.055, 0.052,
-    M.metalLight,
-    0, 0.1, 0
-  );
+  box(stick, 0.115, 0.28, 0.05, M.white);
 
   chewGum = sphere(
-    hands,
-    0.08,
-    M.gum,
+    hands, 0.08, M.gum,
     0, -0.1, -0.48
   );
 
   chewGum.visible = false;
 }
 
-// ============================================
-// HUD AND CAMERA
-// ============================================
+// ==================================================
+// HUD
+// ==================================================
 
 function updateHud() {
   $("floor").textContent = floor;
@@ -1481,6 +1253,8 @@ function updateHud() {
 
   $("powerText").textContent = power + "%";
   $("powerFill").style.width = power + "%";
+
+  updateShotHud();
 }
 
 function message(text) {
@@ -1493,30 +1267,38 @@ function applyAngles() {
 }
 
 function targetAngles() {
-  const d = target.clone()
+  const direction = target.clone()
     .add(new THREE.Vector3(0, 1.35, 0))
     .sub(camera.position)
     .normalize();
 
   return {
-    yaw: Math.atan2(-d.x, -d.z),
-    pitch: Math.asin(d.y)
+    yaw: Math.atan2(-direction.x, -direction.z),
+    pitch: Math.asin(direction.y)
   };
 }
 
-// ============================================
-// LEVEL SETUP
-// ============================================
+// ==================================================
+// LEVEL RESET
+// ==================================================
+
+function removeProjectile() {
+  if (!projectile) return;
+
+  scene.remove(projectile);
+  projectile.geometry.dispose();
+  projectile = null;
+}
 
 function resetLevel() {
   height = 12 + (floor - 1) * 6;
   power = 60;
+  shotsLeft = MAX_SHOTS;
 
   wind =
     (Math.random() - 0.5) *
     Math.min(0.5 * floor, 3);
 
-  // Target remains on the near sidewalk.
   target.set(
     (Math.random() - 0.5) * 3,
     0.34,
@@ -1529,12 +1311,7 @@ function resetLevel() {
   pitch = -0.16;
   applyAngles();
 
-  if (projectile) {
-    scene.remove(projectile);
-    projectile.geometry.dispose();
-    projectile = null;
-  }
-
+  removeProjectile();
   makeBalcony();
   makeTrash();
   makeHands();
@@ -1546,6 +1323,7 @@ function resetLevel() {
 
   state = "intro";
   introTime = 0;
+  shotResetTimer = 0;
 
   message("UNWRAPPING THE GUM...");
   updateHud();
@@ -1560,9 +1338,9 @@ $("startButton").addEventListener("click", () => {
   resetLevel();
 });
 
-// ============================================
-// AUTOMATIC FOUR-SECOND INTRO
-// ============================================
+// ==================================================
+// AUTOMATIC INTRO
+// ==================================================
 
 function updateIntro(dt) {
   if (state !== "intro") return;
@@ -1573,15 +1351,14 @@ function updateIntro(dt) {
   if (t < 0.8) {
     message("UNWRAPPING THE GUM...");
 
-    flap.rotation.x = -2.45 * ease(t / 0.7);
+    flap.rotation.x = -2.45 * smooth(t / 0.7);
     pack.rotation.z = Math.sin(t * 8) * 0.06;
-    leftHand.rotation.z = -0.08 * Math.sin(t * 8);
   }
 
   else if (t < 1.4) {
     message("ONE FRESH STICK...");
 
-    const p = ease((t - 0.8) / 0.6);
+    const p = smooth((t - 0.8) / 0.6);
 
     stick.position.set(
       0.1 + p * 0.18,
@@ -1590,13 +1367,12 @@ function updateIntro(dt) {
     );
 
     rightHand.position.y = -0.48 + p * 0.24;
-    pack.rotation.z = -0.07;
   }
 
-  else if (t < 2.0) {
+  else if (t < 2) {
     message("CHOMP CHOMP...");
 
-    const p = ease((t - 1.4) / 0.6);
+    const p = smooth((t - 1.4) / 0.6);
 
     pack.position.y = -0.3 - p * 0.6;
 
@@ -1610,7 +1386,6 @@ function updateIntro(dt) {
     chewGum.scale.setScalar(
       1 + Math.sin(t * 26) * 0.12
     );
-    chewGum.position.y = -0.13 + p * 0.2;
   }
 
   else if (t < 3.5) {
@@ -1618,31 +1393,29 @@ function updateIntro(dt) {
 
     hands.visible = false;
 
-    const p = ease((t - 2) / 1.5);
+    const p = smooth((t - 2) / 1.5);
 
-    camera.position.z = lerp(
-      START_Z, EDGE_Z, p
-    );
+    camera.position.z = mix(START_Z, EDGE_Z, p);
 
     camera.position.y =
       height +
       Math.sin((t - 2) * 17) *
       0.038 * (1 - p);
 
-    pitch = lerp(-0.16, -0.48, p);
+    pitch = mix(-0.16, -0.48, p);
     applyAngles();
   }
 
-  else if (t < 4.0) {
+  else if (t < 4) {
     message("THERE IT IS...");
 
     camera.position.set(0, height, EDGE_Z);
 
     const aim = targetAngles();
-    const p = ease((t - 3.5) / 0.5);
+    const p = smooth((t - 3.5) / 0.5);
 
-    yaw = lerp(0, aim.yaw, p);
-    pitch = lerp(-0.48, aim.pitch, p);
+    yaw = mix(0, aim.yaw, p);
+    pitch = mix(-0.48, aim.pitch, p);
 
     applyAngles();
   }
@@ -1661,22 +1434,23 @@ function updateIntro(dt) {
     $("crosshair").classList.remove("hidden");
     $("powerHud").classList.remove("hidden");
 
-    message("CLICK TO AIM · THEN CLICK TO SPIT");
+    message("3 SHOTS · CLICK TO AIM");
   }
 }
 
-// ============================================
-// AIMING CONTROLS
-// ============================================
+// ==================================================
+// AIMING
+// ==================================================
 
 function lockMouse() {
   if (document.pointerLockElement === renderer.domElement) {
     return;
   }
 
-  const request = renderer.domElement.requestPointerLock?.();
+  const request =
+    renderer.domElement.requestPointerLock?.();
 
-  if (request && typeof request.catch === "function") {
+  if (request?.catch) {
     request.catch(() => {});
   }
 }
@@ -1693,16 +1467,14 @@ document.addEventListener("pointerlockchange", () => {
 document.addEventListener("mousemove", e => {
   if (!locked || state !== "aiming") return;
 
-  yaw = THREE.MathUtils.clamp(
+  yaw = clamp(
     yaw - e.movementX * 0.0022,
-    -1.35,
-    1.35
+    -1.35, 1.35
   );
 
-  pitch = THREE.MathUtils.clamp(
+  pitch = clamp(
     pitch - e.movementY * 0.0022,
-    -1.54,
-    0.35
+    -1.54, 0.35
   );
 
   applyAngles();
@@ -1713,10 +1485,9 @@ document.addEventListener(
   e => {
     if (state !== "aiming") return;
 
-    power = THREE.MathUtils.clamp(
+    power = clamp(
       power + (e.deltaY > 0 ? -3 : 3),
-      10,
-      100
+      10, 100
     );
 
     updateHud();
@@ -1752,9 +1523,7 @@ document.addEventListener("keydown", e => {
   if (e.code === "ArrowUp") pitch += 0.035;
   if (e.code === "ArrowDown") pitch -= 0.035;
 
-  pitch = THREE.MathUtils.clamp(
-    pitch, -1.54, 0.35
-  );
+  pitch = clamp(pitch, -1.54, 0.35);
 
   applyAngles();
   updateHud();
@@ -1771,12 +1540,15 @@ renderer.domElement.addEventListener("mousedown", e => {
   }
 });
 
-// ============================================
-// GUM PROJECTILE
-// ============================================
+// ==================================================
+// SHOOTING
+// ==================================================
 
 function spit() {
-  if (state !== "aiming") return;
+  if (state !== "aiming" || shotsLeft <= 0) return;
+
+  shotsLeft--;
+  updateHud();
 
   state = "flying";
   flightTime = 0;
@@ -1807,9 +1579,62 @@ function spit() {
   message("BON VOYAGE, GUM!");
 }
 
-// ============================================
+// ==================================================
+// PEDESTRIAN COLLISION
+// ==================================================
+
+function segmentSphereHit(a, b, center, radius) {
+  const ab = b.clone().sub(a);
+  const lengthSquared = ab.lengthSq();
+
+  if (lengthSquared < 0.000001) {
+    return a.distanceTo(center) <= radius;
+  }
+
+  const t = clamp(
+    center.clone().sub(a).dot(ab) / lengthSquared,
+    0, 1
+  );
+
+  const closest = a.clone().addScaledVector(ab, t);
+
+  return closest.distanceTo(center) <= radius;
+}
+
+function checkPedestrianHit(from, to) {
+  for (const p of pedestrians) {
+    if (p.hitCooldown > 0) continue;
+
+    const center = p.g.localToWorld(
+      new THREE.Vector3(0, 1.3, 0)
+    );
+
+    const radius = 0.7 * p.baseScale;
+
+    if (segmentSphereHit(from, to, center, radius)) {
+      return p;
+    }
+  }
+
+  return null;
+}
+
+function hitPedestrian(person) {
+  person.reaction = 0.75;
+  person.hitCooldown = 1.5;
+
+  score = Math.max(0, score - PEDESTRIAN_PENALTY);
+
+  showPopup("-50 POINTS!");
+  message("HEY! WATCH WHERE YOU SPIT!");
+
+  updateHud();
+  completeShot(false);
+}
+
+// ==================================================
 // PROJECTILE PHYSICS
-// ============================================
+// ==================================================
 
 function updateFlight(dt) {
   if (state !== "flying" || !projectile) return;
@@ -1820,15 +1645,14 @@ function updateFlight(dt) {
   velocity.y -= 9.81 * dt;
   velocity.x += wind * dt;
 
-  projectile.position.addScaledVector(
-    velocity, dt
-  );
+  projectile.position.addScaledVector(velocity, dt);
 
   projectile.rotation.x += dt * 6;
   projectile.rotation.z += dt * 4;
 
   const openingHeight = target.y + 1.38;
 
+  // Check trash can opening.
   if (
     previous.y > openingHeight &&
     projectile.position.y <= openingHeight &&
@@ -1838,11 +1662,11 @@ function updateFlight(dt) {
       (previous.y - openingHeight) /
       (previous.y - projectile.position.y);
 
-    const x = lerp(
+    const x = mix(
       previous.x, projectile.position.x, t
     );
 
-    const z = lerp(
+    const z = mix(
       previous.z, projectile.position.z, t
     );
 
@@ -1852,47 +1676,110 @@ function updateFlight(dt) {
         z - target.z
       ) < 0.55
     ) {
-      finish(true);
+      completeShot(true);
       return;
     }
   }
 
+  // Check people, including fast-moving gum.
+  const person = checkPedestrianHit(
+    previous,
+    projectile.position
+  );
+
+  if (person) {
+    hitPedestrian(person);
+    return;
+  }
+
+  // Check ground / timeout.
   if (
     projectile.position.y <= 0.34 ||
     flightTime > 12
   ) {
-    finish(false);
+    completeShot(false);
   }
 }
 
-// ============================================
-// RESULTS
-// ============================================
+// ==================================================
+// THREE-SHOT ROUND SYSTEM
+// ==================================================
 
-function finish(hit) {
-  state = hit ? "success" : "miss";
+function completeShot(hit) {
+  if (state !== "flying") return;
+
+  if (hit) {
+    score += floor * 100;
+    updateHud();
+
+    showPopup(`+${floor * 100} POINTS!`);
+    showResult(true);
+    return;
+  }
+
+  // No results screen after ordinary misses.
+  // Give the shot a short beat, then allow another.
+  state = "betweenShots";
+  shotResetTimer = 0.65;
+
+  if (shotsLeft > 0) {
+    message(`${shotsLeft} SHOT${shotsLeft === 1 ? "" : "S"} LEFT`);
+  } else {
+    message("OUT OF GUM!");
+  }
+}
+
+function updateBetweenShots(dt) {
+  if (state !== "betweenShots") return;
+
+  shotResetTimer -= dt;
+
+  if (shotResetTimer > 0) return;
+
+  removeProjectile();
+
+  if (shotsLeft <= 0) {
+    showResult(false);
+    return;
+  }
+
+  state = "aiming";
+
+  message(
+    `${shotsLeft} SHOT${shotsLeft === 1 ? "" : "S"} LEFT · KEEP GOING!`
+  );
+}
+
+// ==================================================
+// RESULT SCREEN
+// ==================================================
+
+function showResult(hit) {
+  state = hit ? "success" : "outOfShots";
 
   if (document.pointerLockElement === renderer.domElement) {
     document.exitPointerLock();
   }
 
-  if (hit) score += floor * 100;
+  if (hit) {
+    $("resultEyebrow").textContent = "ABSOLUTE LEGEND";
+    $("resultTitle").textContent = "DIRECT HIT!";
 
-  updateHud();
+    $("resultDescription").textContent =
+      `+${floor * 100} points! You made it in ${
+        MAX_SHOTS - shotsLeft
+      } shot${MAX_SHOTS - shotsLeft === 1 ? "" : "s"}.`;
 
-  $("resultEyebrow").textContent =
-    hit ? "ABSOLUTE LEGEND" : "SO CLOSE (MAYBE)";
+    $("resultButton").textContent = "NEXT FLOOR";
+  } else {
+    $("resultEyebrow").textContent = "ALL OUT OF GUM";
+    $("resultTitle").textContent = "TRY AGAIN!";
 
-  $("resultTitle").textContent =
-    hit ? "DIRECT HIT!" : "SPLAT!";
+    $("resultDescription").textContent =
+      "You used all three shots. Give this floor another try!";
 
-  $("resultDescription").textContent =
-    hit
-      ? `+${floor * 100} points! The next balcony is higher.`
-      : "Missed the can. Adjust your angle and power.";
-
-  $("resultButton").textContent =
-    hit ? "NEXT FLOOR" : "TRY AGAIN";
+    $("resultButton").textContent = "RETRY FLOOR";
+  }
 
   $("resultScreen").classList.remove("hidden");
 }
@@ -1903,24 +1790,14 @@ $("resultButton").addEventListener("click", () => {
   if (state === "success") {
     floor++;
     resetLevel();
-    return;
-  }
-
-  if (state === "miss") {
-    if (projectile) {
-      scene.remove(projectile);
-      projectile.geometry.dispose();
-      projectile = null;
-    }
-
-    state = "aiming";
-    message("CLICK TO AIM · THEN CLICK TO SPIT");
+  } else if (state === "outOfShots") {
+    resetLevel();
   }
 });
 
-// ============================================
-// MAIN ANIMATION LOOP
-// ============================================
+// ==================================================
+// MAIN LOOP
+// ==================================================
 
 const clock = new THREE.Clock();
 
@@ -1931,8 +1808,17 @@ function animate() {
 
   updateIntro(dt);
   updateFlight(dt);
+  updateBetweenShots(dt);
   updatePedestrians(dt);
   updateCars(dt);
+
+  if (popupTimer > 0) {
+    popupTimer -= dt;
+
+    if (popupTimer <= 0) {
+      scorePopup.classList.remove("visible");
+    }
+  }
 
   const ring = bin.getObjectByName("targetRing");
 
@@ -1945,9 +1831,9 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// ============================================
+// ==================================================
 // RESIZE
-// ============================================
+// ==================================================
 
 window.addEventListener("resize", () => {
   camera.aspect =
@@ -1961,9 +1847,9 @@ window.addEventListener("resize", () => {
   );
 });
 
-// ============================================
+// ==================================================
 // INITIALIZE
-// ============================================
+// ==================================================
 
 makeCity();
 makePedestrians();
